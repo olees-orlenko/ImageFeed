@@ -47,21 +47,33 @@
                                                     <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
                                                     <state key="normal" title="Like Button" image="Active"/>
                                                 </button>
-                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="27 августа 2022" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="H8G-TJ-jgc" userLabel="Date Label">
-                                                    <rect key="frame" x="24.000000000000007" y="194" width="101.66666666666669" height="16"/>
-                                                    <fontDescription key="fontDescription" type="system" pointSize="13"/>
-                                                    <color key="textColor" name="YP White"/>
-                                                    <nil key="highlightedColor"/>
-                                                </label>
+                                                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="ZAj-CM-1Em">
+                                                    <rect key="frame" x="16" y="188" width="361" height="30"/>
+                                                    <subviews>
+                                                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="27 августа 2022" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="H8G-TJ-jgc" userLabel="Date Label">
+                                                            <rect key="frame" x="8" y="6" width="353" height="16"/>
+                                                            <fontDescription key="fontDescription" type="system" pointSize="13"/>
+                                                            <color key="textColor" name="YP White"/>
+                                                            <nil key="highlightedColor"/>
+                                                        </label>
+                                                    </subviews>
+                                                    <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                                    <constraints>
+                                                        <constraint firstAttribute="trailing" secondItem="H8G-TJ-jgc" secondAttribute="trailing" id="7v7-rr-5Kw"/>
+                                                        <constraint firstAttribute="height" constant="30" id="Yd1-kh-vPy"/>
+                                                        <constraint firstAttribute="bottom" secondItem="H8G-TJ-jgc" secondAttribute="bottom" constant="8" id="duV-KY-J7U"/>
+                                                        <constraint firstItem="H8G-TJ-jgc" firstAttribute="leading" secondItem="ZAj-CM-1Em" secondAttribute="leading" constant="8" id="yBZ-8G-Ab6"/>
+                                                    </constraints>
+                                                </view>
                                             </subviews>
                                             <constraints>
                                                 <constraint firstItem="qOq-Qy-chF" firstAttribute="top" secondItem="Kmb-nM-AGq" secondAttribute="top" id="8pA-ZY-dQu"/>
+                                                <constraint firstItem="ZAj-CM-1Em" firstAttribute="leading" secondItem="Kmb-nM-AGq" secondAttribute="leading" id="CAE-s4-7GP"/>
+                                                <constraint firstItem="ZAj-CM-1Em" firstAttribute="trailing" secondItem="Kmb-nM-AGq" secondAttribute="trailing" id="DEY-9D-hx7"/>
+                                                <constraint firstItem="ZAj-CM-1Em" firstAttribute="bottom" secondItem="Kmb-nM-AGq" secondAttribute="bottom" id="MmC-B3-ROF"/>
                                                 <constraint firstItem="Kmb-nM-AGq" firstAttribute="top" secondItem="hnk-JN-QYt" secondAttribute="top" constant="4" id="Nbg-Zw-X7c"/>
                                                 <constraint firstItem="Kmb-nM-AGq" firstAttribute="leading" secondItem="hnk-JN-QYt" secondAttribute="leading" constant="16" id="TNl-Is-zDJ"/>
-                                                <constraint firstItem="Kmb-nM-AGq" firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="H8G-TJ-jgc" secondAttribute="trailing" constant="8" id="g4D-w3-YWr"/>
                                                 <constraint firstAttribute="bottom" secondItem="Kmb-nM-AGq" secondAttribute="bottom" constant="4" id="jgh-zl-qPj"/>
-                                                <constraint firstItem="H8G-TJ-jgc" firstAttribute="leading" secondItem="Kmb-nM-AGq" secondAttribute="leading" constant="8" id="put-2z-JRL"/>
-                                                <constraint firstItem="Kmb-nM-AGq" firstAttribute="bottom" secondItem="H8G-TJ-jgc" secondAttribute="bottom" constant="8" id="rzc-9h-cJ3"/>
                                                 <constraint firstAttribute="trailing" secondItem="Kmb-nM-AGq" secondAttribute="trailing" constant="16" id="tSJ-46-izg"/>
                                                 <constraint firstItem="qOq-Qy-chF" firstAttribute="trailing" secondItem="Kmb-nM-AGq" secondAttribute="trailing" id="zDM-q6-RKK"/>
                                             </constraints>
@@ -70,6 +82,7 @@
                                         <connections>
                                             <outlet property="cellImage" destination="Kmb-nM-AGq" id="IOF-VG-XR0"/>
                                             <outlet property="dateLabel" destination="H8G-TJ-jgc" id="uh2-51-vcK"/>
+                                            <outlet property="gradientView" destination="ZAj-CM-1Em" id="wIY-7e-ggs"/>
                                             <outlet property="likeButton" destination="qOq-Qy-chF" id="Ahs-O2-4rE"/>
                                         </connections>
                                     </tableViewCell>
