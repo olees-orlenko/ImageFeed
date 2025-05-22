@@ -1,20 +1,14 @@
 import UIKit
 
-class ImagesListViewController: UIViewController {
+final class ImagesListViewController: UIViewController {
     
     // MARK: - Private Properties
-
-    private let photosName: [String] = Array(0..<20).map{ "\($0)" }
     
-    private lazy var dateFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .long
-        formatter.timeStyle = .none
-        return formatter
-    }()
+    private let photosName: [String] = Array(0..<20).map{ "\($0)" }
+    private let currentDate = Date()
     
     // MARK: - @IBOutlet
-
+    
     @IBOutlet private var tableView: UITableView!
     
     // MARK: - Lifecycle
@@ -25,18 +19,32 @@ class ImagesListViewController: UIViewController {
     }
 }
 
+// MARK: - DateFormatter
+
+extension DateFormatter {
+    static let longStyle: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .long
+        formatter.timeStyle = .none
+        return formatter
+    }()
+}
+
 // MARK: - UITableViewDataSource
 
 extension ImagesListViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return photosName.count
+        photosName.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: ImagesListCell.reuseIdentifier, for: indexPath)
-        guard let imageListCell = cell as? ImagesListCell else {
+        guard let imageListCell = tableView.dequeueReusableCell(
+            withIdentifier: ImagesListCell.reuseIdentifier,
+            for: indexPath
+        ) as? ImagesListCell else {
             return UITableViewCell()
         }
+        
         configCell(for: imageListCell, with: indexPath)
         return imageListCell
     }
@@ -51,13 +59,12 @@ extension ImagesListViewController {
             return
         }
         cell.cellImage.image = image
-        cell.dateLabel.text = dateFormatter.string(from: Date())
+        cell.dateLabel.text = DateFormatter.longStyle.string(from: currentDate)
         let isLiked = indexPath.row % 2 == 0
         let likeImage = isLiked ? UIImage(named: "Active") : UIImage(named: "No Active")
         cell.likeButton.setImage(likeImage, for: .normal)
     }
 }
-
 
 // MARK: - UITableViewDelegate
 
