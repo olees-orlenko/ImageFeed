@@ -2,6 +2,8 @@ import UIKit
 
 final class ProfileViewController: UIViewController {
     
+    // MARK: - @IBOutlet
+    
     @IBOutlet var photoImage: UIImageView!
     
     @IBOutlet var nameLabel: UILabel!
@@ -11,6 +13,8 @@ final class ProfileViewController: UIViewController {
     @IBOutlet var textLabel: UILabel!
     
     @IBOutlet var logoutButton: UIButton!
+    
+    // MARK: - Actions
     
     @IBAction private func didTapLogoutButton() {
     }
