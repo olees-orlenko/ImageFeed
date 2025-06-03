@@ -28,7 +28,13 @@ final class ImagesListViewController: UIViewController {
                 assertionFailure("Invalid segue destination")
                 return
             }
-            let image = UIImage(named: photosName[indexPath.row])
+            guard indexPath.row < photosName.count else {
+                return
+            }
+            let imageName = photosName[indexPath.row]
+            guard let image = UIImage(named: imageName) else {
+                return
+            }
             viewController.image = image
         } else {
             super.prepare(for: segue, sender: sender)

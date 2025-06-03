@@ -7,9 +7,9 @@ final class ProfileViewController: UIViewController {
     private var photoImage = UIImage()
     private var imageView = UIImageView()
     private var logoutButton = UIButton()
-    private var nameLabel = UILabel()
-    private var nicknameLabel = UILabel()
-    private var textLabel = UILabel()
+    private let nameLabel = UILabel()
+    private let nicknameLabel = UILabel()
+    private let textLabel = UILabel()
     
     // MARK: - Lifecycle
     
