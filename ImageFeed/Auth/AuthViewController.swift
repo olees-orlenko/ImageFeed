@@ -1,9 +1,15 @@
 import UIKit
 
 final class AuthViewController: UIViewController {
+    
+    // MARK: - Private Properties
+    
     private var logoImage = UIImage()
     private var imageView = UIImageView()
     private var loginButton = UIButton()
+    private let showWebViewSegueIdentifier = "ShowWebView"
+    
+    // MARK: - Lifecycle
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -43,9 +49,10 @@ final class AuthViewController: UIViewController {
         loginButton.layer.cornerRadius = 16
         loginButton.contentMode = .scaleToFill
         loginButton.translatesAutoresizingMaskIntoConstraints = false
+        loginButton.addTarget(self, action: #selector(didTapLoginButton), for: .touchUpInside)
         view.addSubview(loginButton)
     }
-
+    
     
     // MARK: - Layout Constraints
     
@@ -61,5 +68,40 @@ final class AuthViewController: UIViewController {
             loginButton.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16),
             loginButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -90)
         ])
+    }
+    
+    // MARK: - Navigation
+    
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?){
+        if segue.identifier == showWebViewSegueIdentifier {
+            guard
+                let webViewController = segue.destination as? WebViewViewController
+            else {
+                assertionFailure("Failed to prepare for \(showWebViewSegueIdentifier)")
+                return
+            }
+            webViewController.delegate = self
+        } else {
+            super.prepare(for: segue, sender: sender)
+        }
+    }
+    
+    // MARK: - Actions
+    
+    @objc private func didTapLoginButton() {
+        let webViewViewController = WebViewViewController()
+        navigationController?.pushViewController(webViewViewController, animated: true)
+    }
+}
+
+// MARK: - WebViewViewControllerDelegate
+
+extension AuthViewController: WebViewViewControllerDelegate {
+    func webViewViewControllerDidCancel(_ vc: WebViewViewController){
+        vc.dismiss(animated: true)
+    }
+    
+    func webViewViewController(_ vc: WebViewViewController, didAuthenticateWithCode code: String) {
+        //TODO: process code
     }
 }
