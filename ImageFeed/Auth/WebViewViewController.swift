@@ -29,6 +29,7 @@ final class WebViewViewController: UIViewController{
     private var backButton = UIBarButtonItem()
     private var progressView = UIProgressView()
     
+    
     // MARK: - Lifecycle
     
     override func viewDidLoad() {
@@ -40,6 +41,44 @@ final class WebViewViewController: UIViewController{
         setupBackButton()
         setProgress()
         setupConstraints()
+        updateProgress()
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        webView.addObserver(
+            self,
+            forKeyPath: #keyPath(WKWebView.estimatedProgress),
+            options: .new,
+            context: nil)
+        updateProgress()
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        webView.removeObserver(self, forKeyPath: #keyPath(WKWebView.estimatedProgress), context: nil)
+    }
+    
+    // MARK: - KVO
+    
+    override func observeValue(
+        forKeyPath keyPath: String?,
+        of object: Any?,
+        change: [NSKeyValueChangeKey : Any]?,
+        context: UnsafeMutableRawPointer?
+    ) {
+        if keyPath == #keyPath(WKWebView.estimatedProgress) {
+            updateProgress()
+        } else {
+            super.observeValue(forKeyPath: keyPath, of: object, change: change, context: context)
+        }
+    }
+    
+    // MARK: - Progress Update
+    
+    private func updateProgress() {
+        progressView.progress = Float(webView.estimatedProgress)
+        progressView.isHidden = fabs(webView.estimatedProgress - 1.0) <= 0.0001
     }
     
     // MARK: - Authentication
@@ -81,7 +120,6 @@ final class WebViewViewController: UIViewController{
     private func setProgress() {
         progressView = UIProgressView(progressViewStyle: .default)
         progressView.progressTintColor = UIColor(named: "YP Black")
-        progressView.progress = 0.5
         progressView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(progressView)
     }
