@@ -1,22 +1,6 @@
 import UIKit
 import WebKit
 
-// MARK: - Constants
-
-enum WebViewConstants {
-    // MARK: - Static Properties
-    
-    static let unsplashAuthorizeURLString = "https://unsplash.com/oauth/authorize"
-}
-
-// MARK: - Delegate
-
-protocol WebViewViewControllerDelegate: AnyObject {
-    func webViewViewController(_ vc: WebViewViewController, didAuthenticateWithCode code: String)
-    
-    func webViewViewControllerDidCancel(_ vc: WebViewViewController)
-}
-
 final class WebViewViewController: UIViewController{
     
     // MARK: - Properties
@@ -28,7 +12,6 @@ final class WebViewViewController: UIViewController{
     private var webView = WKWebView()
     private var backButton = UIBarButtonItem()
     private var progressView = UIProgressView()
-    
     
     // MARK: - Lifecycle
     
@@ -85,6 +68,7 @@ final class WebViewViewController: UIViewController{
     
     private func loadAuthView() {
         guard var urlComponents = URLComponents(string: WebViewConstants.unsplashAuthorizeURLString) else {
+            print("Ошибка: Не удалось создать URLComponents из WebViewConstants.unsplashAuthorizeURLString")
             return
         }
         urlComponents.queryItems = [
@@ -94,9 +78,12 @@ final class WebViewViewController: UIViewController{
             URLQueryItem(name: "scope", value: Constants.accessScope)
         ]
         guard let url = urlComponents.url else {
+            print("Ошибка: Не удалось создать URL из URLComponents")
             return
         }
         let request = URLRequest(url: url)
+        print("URLRequest URL: \(request.url?.absoluteString ?? "nil")")
+        print("URLRequest HTTP Method: \(request.httpMethod ?? "GET")")
         webView.load(request)
     }
     
@@ -123,6 +110,7 @@ final class WebViewViewController: UIViewController{
         progressView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(progressView)
     }
+    
     // MARK: - BackButton Setup
     
     private func setupBackButton() {

@@ -2,6 +2,10 @@ import UIKit
 
 final class AuthViewController: UIViewController {
     
+    // MARK: - Properties
+    
+    weak var delegate: AuthViewControllerDelegate?
+    
     // MARK: - Private Properties
     
     private var logoImage = UIImage()
@@ -25,6 +29,7 @@ final class AuthViewController: UIViewController {
         view.contentMode = .scaleToFill
         view.backgroundColor = UIColor(named: "YP Black")
     }
+    
     // MARK: - ImageView Setup
     
     private func setupImageView() {
@@ -52,7 +57,6 @@ final class AuthViewController: UIViewController {
         loginButton.addTarget(self, action: #selector(didTapLoginButton), for: .touchUpInside)
         view.addSubview(loginButton)
     }
-    
     
     // MARK: - Layout Constraints
     
@@ -90,6 +94,7 @@ final class AuthViewController: UIViewController {
     
     @objc private func didTapLoginButton() {
         let webViewViewController = WebViewViewController()
+        webViewViewController.delegate = self
         navigationController?.pushViewController(webViewViewController, animated: true)
     }
 }
@@ -97,11 +102,16 @@ final class AuthViewController: UIViewController {
 // MARK: - WebViewViewControllerDelegate
 
 extension AuthViewController: WebViewViewControllerDelegate {
-    func webViewViewControllerDidCancel(_ vc: WebViewViewController){
-        vc.dismiss(animated: true)
+    
+    // MARK: - Cancellation
+    
+    func webViewViewControllerDidCancel(_ vc: WebViewViewController) {
+        dismiss(animated: true)
     }
     
+    // MARK: - Authentication
+    
     func webViewViewController(_ vc: WebViewViewController, didAuthenticateWithCode code: String) {
-        //TODO: process code
+        delegate?.authViewController(self, didAuthenticateWithCode: code)
     }
 }
