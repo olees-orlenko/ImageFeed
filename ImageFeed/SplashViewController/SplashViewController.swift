@@ -62,27 +62,12 @@ extension SplashViewController {
 // MARK: - AuthViewControllerDelegate
 
 extension SplashViewController: AuthViewControllerDelegate {
-    func authViewController(_ vc: AuthViewController, didAuthenticateWithCode code: String) {
-        fetchOAuthToken(code)
-    }
     
-    // MARK: - OAuth Token Fetching
+    // MARK: - Authentication
     
-    private func fetchOAuthToken(_ code: String) {
-        oauth2Service.fetchOAuthToken(code) { [weak self] result in
-            DispatchQueue.main.async {
-                guard let self = self else { return }
-                switch result {
-                case .success:
-                    self.switchToTabBarController()
-                case .failure(let error):
-                    print("Ошибка получения токена: \(error)")
-                    let alert = UIAlertController(title: "Ошибка", message: "Не удалось получить токен авторизации. Попробуйте еще раз.", preferredStyle: .alert)
-                    alert.addAction(UIAlertAction(title: "OK", style: .default))
-                    self.present(alert, animated: true)
-                    break
-                }
-            }
-        }
+    func authViewController(_ vc: AuthViewController, didAuthenticateWithToken token: String) {
+        OAuth2TokenStorage.shared.token = token
+        switchToTabBarController()
+        dismiss(animated: true)
     }
 }

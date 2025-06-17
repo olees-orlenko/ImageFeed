@@ -112,6 +112,23 @@ extension AuthViewController: WebViewViewControllerDelegate {
     // MARK: - Authentication
     
     func webViewViewController(_ vc: WebViewViewController, didAuthenticateWithCode code: String) {
-        delegate?.authViewController(self, didAuthenticateWithCode: code)
+        fetchOAuthToken(code: code)
+    }
+    
+    // MARK: - OAuth Token Fetching
+    
+    private func fetchOAuthToken(code: String) {
+        OAuth2Service.shared.fetchOAuthToken(code) { [weak self] result in
+            DispatchQueue.main.async {
+                guard let self = self else { return }
+                switch result {
+                case .success(let token):
+                    self.delegate?.authViewController(self, didAuthenticateWithToken: token)
+                    self.dismiss(animated: true)
+                case .failure(let error):
+                    print("Ошибка получения токена: \(error)")
+                }
+            }
+        }
     }
 }
