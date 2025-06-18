@@ -12,6 +12,7 @@ final class OAuth2Service {
     
     private var lastCode: String?
     private var task: URLSessionTask?
+    private let decoder = JSONDecoder()
     
     // MARK: - Public Methods
     
@@ -29,8 +30,8 @@ final class OAuth2Service {
                 case .success(let data):
                     print("JSON ответ: \(String(data: data, encoding: .utf8) ?? "Невозможно декодировать данные")")
                     do {
-                        let decoder = JSONDecoder()
-                        let authResponse = try decoder.decode(OAuthTokenResponseBody.self, from: data)
+                        self.decoder.keyDecodingStrategy = .convertFromSnakeCase
+                        let authResponse = try self.decoder.decode(OAuthTokenResponseBody.self, from: data)
                         OAuth2TokenStorage.shared.token = authResponse.accessToken
                         print("Токен: \(authResponse.accessToken)")
                         completion(.success(authResponse.accessToken))

@@ -15,7 +15,7 @@ final class OAuth2TokenStorage {
     
     var token: String? {
         get {
-            return userDefaults.string(forKey: tokenKey)
+            userDefaults.string(forKey: tokenKey)
         }
         set {
             userDefaults.set(newValue, forKey: tokenKey)
