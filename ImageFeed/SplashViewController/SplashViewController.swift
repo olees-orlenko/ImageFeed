@@ -5,9 +5,10 @@ final class SplashViewController: UIViewController {
     // MARK: - Properties
     
     private let ShowAuthenticationScreenSegueIdentifier = "ShowAuthenticationScreen"
-    
     private let oauth2Service = OAuth2Service.shared
     private let oauth2TokenStorage = OAuth2TokenStorage.shared
+    private let profileService = ProfileService.shared
+    private var profile: Profile?
     
     // MARK: - Lifecycle
     
@@ -15,7 +16,7 @@ final class SplashViewController: UIViewController {
         super.viewDidAppear(animated)
         print("oauth2TokenStorage.token: \(oauth2TokenStorage.token ?? "nil")")
         if let token = oauth2TokenStorage.token {
-            switchToTabBarController()
+            fetchProfile()
         } else {
             performSegue(withIdentifier: ShowAuthenticationScreenSegueIdentifier, sender: nil)
         }
@@ -45,6 +46,9 @@ final class SplashViewController: UIViewController {
 // MARK: - Navigation (Prepare for Segue)
 
 extension SplashViewController {
+    
+    // MARK: - Navigation
+    
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         print("prepare(for segue:) called with identifier: \(segue.identifier ?? "nil")")
         if segue.identifier == ShowAuthenticationScreenSegueIdentifier {
@@ -64,6 +68,40 @@ extension SplashViewController {
 extension SplashViewController: AuthViewControllerDelegate {
     
     // MARK: - Authentication
+    
+    func didAuthenticate(_ vc: AuthViewController) {
+        vc.dismiss(animated: true)
+        guard let token = oauth2TokenStorage.token else {
+            return
+        }
+        fetchProfile()
+    }
+    
+    // MARK: - Fetch Profile
+    
+    private func fetchProfile() {
+//            UIBlockingProgressHUD.show() // - не знаю нужно ли это, когда пользователь авторизован
+            guard let token = oauth2TokenStorage.token else {
+                UIBlockingProgressHUD.dismiss()
+                print("Токен не найден")
+                return
+            }
+            profileService.fetchProfile(token: token) { [weak self] result in
+                DispatchQueue.main.async {
+                    UIBlockingProgressHUD.dismiss()
+                    guard let self = self else { return }
+                    switch result {
+                    case .success(let profile):
+                        self.profile = profile
+                        self.switchToTabBarController()
+                    case .failure(let error):
+                        print("Не удалось загрузить профиль: \(error)")
+                    }
+                }
+            }
+        }
+
+    // MARK: - Authentication with Token
     
     func authViewController(_ vc: AuthViewController, didAuthenticateWithToken token: String) {
         OAuth2TokenStorage.shared.token = token

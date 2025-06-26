@@ -2,7 +2,7 @@ import UIKit
 
 final class ProfileViewController: UIViewController {
     
-    // MARK: - Private Properties
+    // MARK: - Private UI Properties
     
     private var photoImage = UIImage()
     private var imageView = UIImageView()
@@ -10,6 +10,10 @@ final class ProfileViewController: UIViewController {
     private let nameLabel = UILabel()
     private let nicknameLabel = UILabel()
     private let textLabel = UILabel()
+    
+    // MARK: - Private Services
+    
+    private let profileService = ProfileService.shared
     
     // MARK: - Lifecycle
     
@@ -22,6 +26,7 @@ final class ProfileViewController: UIViewController {
         setupNicknameLabel()
         setupTextLabel()
         setupConstraints()
+        updateProfile()
     }
     
     // MARK: - View Setup
@@ -37,8 +42,9 @@ final class ProfileViewController: UIViewController {
         photoImage = UIImage(named: "Photo") ?? UIImage(systemName: "person.crop.circle.fill")!
         imageView = UIImageView(image: photoImage)
         imageView.layer.masksToBounds = false
+        imageView.clipsToBounds = true
         imageView.layer.cornerRadius = 35
-        imageView.contentMode = .scaleAspectFit
+        imageView.contentMode = .scaleAspectFill
         imageView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(imageView)
     }
@@ -116,5 +122,42 @@ final class ProfileViewController: UIViewController {
             textLabel.leadingAnchor.constraint(equalTo: nameLabel.leadingAnchor),
             textLabel.topAnchor.constraint(equalTo: nicknameLabel.bottomAnchor, constant: 8),
         ])
+    }
+    
+    // MARK: - Private Methods
+    
+    private func updateProfile() {
+        guard let profile = profileService.profile else {
+            print("Профиль не загружен")
+            return
+        }
+        nameLabel.text = profile.name
+        nicknameLabel.text = profile.loginName
+        textLabel.text = profile.bio
+        guard let urlString = profile.profileImageLarge ?? profile.profileImageMedium ?? profile.profileImageSmall,
+              let url = URL(string: urlString) else {
+            imageView.image = UIImage(named: "Photo")
+            return
+        }
+        URLSession.shared.dataTask(with: url) { data, response, error in
+            if let error = error {
+                print("Ошибка загрузки фото профиля: \(error)")
+                DispatchQueue.main.async {
+                    self.imageView.image = UIImage(named: "Photo")
+                }
+                return
+            }
+            guard let data = data,
+                  let image = UIImage(data: data) else {
+                print("Неверный формат данных для фото профиля")
+                DispatchQueue.main.async {
+                    self.imageView.image = UIImage(named: "Photo")
+                }
+                return
+            }
+            DispatchQueue.main.async {
+                self.imageView.image = image
+            }
+        }.resume()
     }
 }

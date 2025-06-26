@@ -18,11 +18,16 @@ final class OAuth2Service {
     
     func fetchOAuthToken(_ code: String, completion: @escaping (Result<String, Error>) -> Void) {
         assert(Thread.isMainThread)
-        if lastCode == code {
+        guard lastCode != code else {
+            completion(.failure(AuthServiceError.invalidRequest))
             return
         }
-        task?.cancel()
+        if task != nil {
+            print("Отмена предыдущей задачи для code: \(lastCode ?? "nil")")
+            task?.cancel()
+        }
         lastCode = code
+        print("Запуск новой задачи для code: \(code)")
         let request = authTokenRequest(code: code)
         task = URLSession.shared.data(for: request) { result in
             DispatchQueue.main.async {
@@ -44,11 +49,12 @@ final class OAuth2Service {
                     print("Ошибка: \(error)")
                     completion(.failure(error))
                 }
+                self.task = nil
             }
         }
         task?.resume()
     }
-    
+
     // MARK: - Private Methods
     
     private func authTokenRequest(code: String) -> URLRequest {
@@ -75,10 +81,10 @@ final class OAuth2Service {
         request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
         request.httpBody = postString.data(using: .utf8)
         if let body = request.httpBody, let bodyString = String(data: body, encoding: .utf8) {
-                print("request httpBody: \(bodyString)")
-            } else {
-                print("request httpBody: nil or invalid encoding")
-            }
+            print("request httpBody: \(bodyString)")
+        } else {
+            print("request httpBody: nil or invalid encoding")
+        }
         print("URLRequest URL: \(request.url?.absoluteString ?? "nil")")
         print("URLRequest HTTP Method: \(request.httpMethod ?? "POST")")
         return request

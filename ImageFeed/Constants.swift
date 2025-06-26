@@ -17,4 +17,5 @@ enum WebViewConstants {
     
     static let unsplashAuthorizeURLString = "https://unsplash.com/oauth/authorize"
     static let unsplashAccessTokenURLString = "https://unsplash.com/oauth/token"
+    static let unsplashProfileURLString = "https://api.unsplash.com/me"
 }

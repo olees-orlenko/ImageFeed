@@ -11,6 +11,7 @@ final class AuthViewController: UIViewController {
     private var logoImage = UIImage()
     private var imageView = UIImageView()
     private var loginButton = UIButton()
+    private var isFetchingToken = false
     private let showWebViewSegueIdentifier = "ShowWebView"
     
     // MARK: - Lifecycle
@@ -93,6 +94,7 @@ final class AuthViewController: UIViewController {
     // MARK: - Actions
     
     @objc private func didTapLoginButton() {
+        guard !isFetchingToken else { return }
         let webViewViewController = WebViewViewController()
         webViewViewController.delegate = self
         navigationController?.pushViewController(webViewViewController, animated: true)
@@ -112,6 +114,8 @@ extension AuthViewController: WebViewViewControllerDelegate {
     // MARK: - Authentication
     
     func webViewViewController(_ vc: WebViewViewController, didAuthenticateWithCode code: String) {
+        isFetchingToken = true
+        UIBlockingProgressHUD.show()
         fetchOAuthToken(code: code)
     }
     
@@ -121,6 +125,8 @@ extension AuthViewController: WebViewViewControllerDelegate {
         OAuth2Service.shared.fetchOAuthToken(code) { [weak self] result in
             DispatchQueue.main.async {
                 guard let self = self else { return }
+                UIBlockingProgressHUD.dismiss()
+                self.isFetchingToken = false
                 switch result {
                 case .success(let token):
                     self.delegate?.authViewController(self, didAuthenticateWithToken: token)
