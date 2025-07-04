@@ -133,6 +133,13 @@ extension AuthViewController: WebViewViewControllerDelegate {
                     self.dismiss(animated: true)
                 case .failure(let error):
                     print("Ошибка получения токена: \(error)")
+                    let alert = UIAlertController(
+                        title: "Что-то пошло не так",
+                        message: "Не удалось войти в систему",
+                        preferredStyle: .alert
+                    )
+                    alert.addAction(UIAlertAction(title: "Ок", style: .default, handler: nil))
+                    self.present(alert, animated: true, completion: nil)
                 }
             }
         }

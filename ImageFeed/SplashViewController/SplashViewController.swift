@@ -8,6 +8,7 @@ final class SplashViewController: UIViewController {
     private let oauth2Service = OAuth2Service.shared
     private let oauth2TokenStorage = OAuth2TokenStorage.shared
     private let profileService = ProfileService.shared
+    private let profileImageService = ProfileImageService.shared
     private var profile: Profile?
     
     // MARK: - Lifecycle
@@ -40,6 +41,7 @@ final class SplashViewController: UIViewController {
         let tabBarController = UIStoryboard(name: "Main", bundle: .main)
             .instantiateViewController(withIdentifier: "TabBarViewController")
         window.rootViewController = tabBarController
+        print("switchToTabBarController() called")
     }
 }
 
@@ -80,32 +82,55 @@ extension SplashViewController: AuthViewControllerDelegate {
     // MARK: - Fetch Profile
     
     private func fetchProfile() {
-//            UIBlockingProgressHUD.show() // - не знаю нужно ли это, когда пользователь авторизован
-            guard let token = oauth2TokenStorage.token else {
+        UIBlockingProgressHUD.show()
+        guard let token = oauth2TokenStorage.token else {
+            UIBlockingProgressHUD.dismiss()
+            print("Токен не найден")
+            return
+        }
+        profileService.fetchProfile(token: token) { [weak self] result in
+            DispatchQueue.main.async {
                 UIBlockingProgressHUD.dismiss()
-                print("Токен не найден")
-                return
-            }
-            profileService.fetchProfile(token: token) { [weak self] result in
-                DispatchQueue.main.async {
-                    UIBlockingProgressHUD.dismiss()
-                    guard let self = self else { return }
-                    switch result {
-                    case .success(let profile):
-                        self.profile = profile
-                        self.switchToTabBarController()
-                    case .failure(let error):
-                        print("Не удалось загрузить профиль: \(error)")
+                guard let self = self else { return }
+                switch result {
+                case .success(let profile):
+                    self.profile = profile
+                    if let username = profile.username {
+                        self.fetchProfileImageURL(username: username)
+                    } else {
+                        print("Имя пользователя отсутствует, невозможно загрузить URL изображения профиля")
                     }
+                    self.switchToTabBarController()
+                case .failure(let error):
+                    UIBlockingProgressHUD.dismiss()
+                    print("Не удалось загрузить профиль: \(error)")
                 }
             }
         }
-
+    }
+    
+    private func fetchProfileImageURL(username: String) {
+        profileImageService.fetchProfileImageURL(username: username) { [weak self] result in
+            guard let self = self else { return }
+            switch result {
+            case .success(let avatarURL):
+                print("URL изображения профиля успешно загружен: \(avatarURL)")
+            case .failure(let error):
+                print("Ошибка при загрузке URL изображения профиля: \(error.localizedDescription)")}
+        }
+    }
+    
     // MARK: - Authentication with Token
     
     func authViewController(_ vc: AuthViewController, didAuthenticateWithToken token: String) {
+        UIBlockingProgressHUD.show()
         OAuth2TokenStorage.shared.token = token
-        switchToTabBarController()
-        dismiss(animated: true)
+        vc.dismiss(animated: true) { [weak self] in
+            guard let self = self else {
+                UIBlockingProgressHUD.dismiss()
+                return
+            }
+            self.fetchProfile()
+        }
     }
 }

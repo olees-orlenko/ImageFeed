@@ -1,4 +1,5 @@
 import UIKit
+import Kingfisher
 
 final class ProfileViewController: UIViewController {
     
@@ -13,7 +14,9 @@ final class ProfileViewController: UIViewController {
     
     // MARK: - Private Services
     
+    private var profileImageServiceObserver: NSObjectProtocol?
     private let profileService = ProfileService.shared
+    private let profileImageService = ProfileImageService.shared
     
     // MARK: - Lifecycle
     
@@ -26,7 +29,17 @@ final class ProfileViewController: UIViewController {
         setupNicknameLabel()
         setupTextLabel()
         setupConstraints()
+        profileImageServiceObserver = NotificationCenter.default
+            .addObserver(
+                forName: ProfileImageService.didChangeNotification,
+                object: nil,
+                queue: .main
+            ) { [weak self] _ in
+                guard let self = self else { return }
+                self.updateAvatar()
+            }
         updateProfile()
+        updateAvatar()
     }
     
     // MARK: - View Setup
@@ -98,7 +111,9 @@ final class ProfileViewController: UIViewController {
     // MARK: - Actions
     
     @objc
-    private func didTapLogoutButton(){}
+    private func didTapLogoutButton(){
+        OAuth2TokenStorage.shared.removeToken()
+    }
     
     // MARK: - Layout Constraints
     
@@ -134,30 +149,19 @@ final class ProfileViewController: UIViewController {
         nameLabel.text = profile.name
         nicknameLabel.text = profile.loginName
         textLabel.text = profile.bio
-        guard let urlString = profile.profileImageLarge ?? profile.profileImageMedium ?? profile.profileImageSmall,
+    }
+    private func updateAvatar() {
+        guard let urlString = profileImageService.avatarURL,
               let url = URL(string: urlString) else {
             imageView.image = UIImage(named: "Photo")
             return
         }
-        URLSession.shared.dataTask(with: url) { data, response, error in
-            if let error = error {
-                print("Ошибка загрузки фото профиля: \(error)")
-                DispatchQueue.main.async {
-                    self.imageView.image = UIImage(named: "Photo")
-                }
-                return
-            }
-            guard let data = data,
-                  let image = UIImage(data: data) else {
-                print("Неверный формат данных для фото профиля")
-                DispatchQueue.main.async {
-                    self.imageView.image = UIImage(named: "Photo")
-                }
-                return
-            }
-            DispatchQueue.main.async {
-                self.imageView.image = image
-            }
-        }.resume()
+        let processor = RoundCornerImageProcessor(cornerRadius: 35)
+        imageView.kf.indicatorType = .activity
+        imageView.kf.setImage(
+            with: url,
+            placeholder: UIImage(named: "Photo"),
+            options: [.processor(processor)]
+        )
     }
 }

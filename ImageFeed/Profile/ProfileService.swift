@@ -11,7 +11,6 @@ final class ProfileService {
     // MARK: - Private Properties
     
     private var task: URLSessionTask?
-    private let decoder = JSONDecoder()
     private(set) var profile: Profile?
     
     // MARK: - Public Methods
@@ -20,41 +19,28 @@ final class ProfileService {
         assert(Thread.isMainThread)
         task?.cancel()
         guard let request = makeProfileRequest(token: token) else {
+            print("[fetchProfile]: NetworkError - invalidURL")
             completion(.failure(NetworkError.invalidURL(message: "Неправильный URL")))
             return
         }
-        task = URLSession.shared.data(for: request) { [weak self] result in
-            DispatchQueue.main.async {
+        task = URLSession.shared.objectTask(for: request) { [weak self] (result: Result<ProfileResult, Error>) in
                 guard let self = self else { return }
                 self.task = nil
                 switch result {
-                case .success(let data):
-                    print("JSON ответ: \(String(data: data, encoding: .utf8) ?? "Невозможно декодировать данные")")
-                    do {
-                        self.decoder.keyDecodingStrategy = .convertFromSnakeCase
-                        let profileResult = try self.decoder.decode(ProfileResult.self, from: data)
+                case .success(let profileResult):
                         let profile = Profile(
                             username: profileResult.username,
                             name: "\(profileResult.firstName ?? "") \(profileResult.lastName ?? "")",
                             loginName: "@\(profileResult.username)",
-                            bio: profileResult.bio ?? "",
-                            profileImageSmall: profileResult.profileImage?.small,
-                            profileImageMedium: profileResult.profileImage?.medium,
-                            profileImageLarge: profileResult.profileImage?.large
+                            bio: profileResult.bio ?? ""
                         )
                         self.profile = profile
                         completion(.success(profile))
-                    } catch {
-                        let errorMessage = "Ошибка декодирования JSON: \(error.localizedDescription)"
-                        print("Ошибка: \(errorMessage)")
-                        completion(.failure(NetworkError.decodingError(message: errorMessage)))
-                    }
                 case .failure(let error):
-                    print("Ошибка: \(error)")
+                    print("[fetchProfile]: Error - \(error.localizedDescription)")
                     completion(.failure(error))
                 }
             }
-        }
         task?.resume()
     }
     
@@ -71,11 +57,6 @@ final class ProfileService {
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        if let body = request.httpBody, let bodyString = String(data: body, encoding: .utf8) {
-            print("request httpBody: \(bodyString)")
-        } else {
-            print("request httpBody: nil or invalid encoding")
-        }
         print("URLRequest URL: \(request.url?.absoluteString ?? "nil")")
         print("URLRequest HTTP Method: \(request.httpMethod ?? "GET")")
         return request
