@@ -7,11 +7,11 @@ final class OAuth2TokenStorage {
     static let shared = OAuth2TokenStorage()
     
     private init() {}
-
+    
     // MARK: - Private Properties
     
     private let tokenKey = "OAuth2Token"
-
+    
     // MARK: - Properties
     
     var token: String? {
@@ -26,8 +26,9 @@ final class OAuth2TokenStorage {
             }
         }
     }
-
+    
     func removeToken() {
         KeychainWrapper.standard.removeObject(forKey: tokenKey)
+        print("Logout")
     }
 }

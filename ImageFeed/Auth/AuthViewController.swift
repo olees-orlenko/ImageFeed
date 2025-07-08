@@ -97,7 +97,8 @@ final class AuthViewController: UIViewController {
         guard !isFetchingToken else { return }
         let webViewViewController = WebViewViewController()
         webViewViewController.delegate = self
-        navigationController?.pushViewController(webViewViewController, animated: true)
+        webViewViewController.modalPresentationStyle = .fullScreen
+        present(webViewViewController, animated: true, completion: nil)
     }
 }
 
@@ -114,14 +115,33 @@ extension AuthViewController: WebViewViewControllerDelegate {
     // MARK: - Authentication
     
     func webViewViewController(_ vc: WebViewViewController, didAuthenticateWithCode code: String) {
-        isFetchingToken = true
-        UIBlockingProgressHUD.show()
-        fetchOAuthToken(code: code)
+        vc.dismiss(animated: true) { [weak self] in
+            guard let self = self else { return }
+            UIBlockingProgressHUD.show()
+            self.isFetchingToken = true
+            self.fetchOAuthToken(code: code) { result in
+                UIBlockingProgressHUD.dismiss()
+                self.isFetchingToken = false
+                switch result {
+                case .success(let token):
+                    self.delegate?.authViewController(self, didAuthenticateWithToken: token)
+                case .failure(let error):
+                    print("Ошибка получения токена: \(error)")
+                    let alert = UIAlertController(
+                        title: "Что-то пошло не так(",
+                        message: "Не удалось войти в систему",
+                        preferredStyle: .alert
+                    )
+                    alert.addAction(UIAlertAction(title: "Ок", style: .default, handler: nil))
+                    self.present(alert, animated: true, completion: nil)
+                }
+            }
+        }
     }
     
     // MARK: - OAuth Token Fetching
     
-    private func fetchOAuthToken(code: String) {
+    private func fetchOAuthToken(code: String, completion: @escaping (Result<String, Error>) -> Void) {
         OAuth2Service.shared.fetchOAuthToken(code) { [weak self] result in
             DispatchQueue.main.async {
                 guard let self = self else { return }
@@ -129,17 +149,10 @@ extension AuthViewController: WebViewViewControllerDelegate {
                 self.isFetchingToken = false
                 switch result {
                 case .success(let token):
-                    self.delegate?.authViewController(self, didAuthenticateWithToken: token)
-                    self.dismiss(animated: true)
+                    completion(.success(token))
                 case .failure(let error):
+                    completion(.failure(error))
                     print("Ошибка получения токена: \(error)")
-                    let alert = UIAlertController(
-                        title: "Что-то пошло не так",
-                        message: "Не удалось войти в систему",
-                        preferredStyle: .alert
-                    )
-                    alert.addAction(UIAlertAction(title: "Ок", style: .default, handler: nil))
-                    self.present(alert, animated: true, completion: nil)
                 }
             }
         }

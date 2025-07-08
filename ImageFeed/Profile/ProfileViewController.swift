@@ -150,6 +150,7 @@ final class ProfileViewController: UIViewController {
         nicknameLabel.text = profile.loginName
         textLabel.text = profile.bio
     }
+    
     private func updateAvatar() {
         guard let urlString = profileImageService.avatarURL,
               let url = URL(string: urlString) else {

@@ -2,6 +2,11 @@ import UIKit
 
 final class SplashViewController: UIViewController {
     
+    // MARK: - Private UI Properties
+    
+    private var logoImage = UIImage()
+    private var imageView = UIImageView()
+    
     // MARK: - Properties
     
     private let ShowAuthenticationScreenSegueIdentifier = "ShowAuthenticationScreen"
@@ -13,19 +18,53 @@ final class SplashViewController: UIViewController {
     
     // MARK: - Lifecycle
     
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        setupView()
+        setupImageView()
+        setupConstraints()
+    }
+    
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         print("oauth2TokenStorage.token: \(oauth2TokenStorage.token ?? "nil")")
         if let token = oauth2TokenStorage.token {
             fetchProfile()
         } else {
-            performSegue(withIdentifier: ShowAuthenticationScreenSegueIdentifier, sender: nil)
+            showAuthController()
         }
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         setNeedsStatusBarAppearanceUpdate()
+    }
+    
+    // MARK: - View Setup
+    
+    private func setupView() {
+        view.contentMode = .scaleToFill
+        view.backgroundColor = UIColor(named: "YP Black")
+    }
+    
+    // MARK: - ImageView Setup
+    
+    private func setupImageView() {
+        logoImage = UIImage(named: "Logo") ?? UIImage(systemName: "questionmark.circle")!
+        imageView = UIImageView(image: logoImage)
+        imageView.contentMode = .scaleAspectFit
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(imageView)
+    }
+    
+    // MARK: - Layout Constraints
+    
+    private func setupConstraints() {
+        NSLayoutConstraint.activate([
+            imageView.widthAnchor.constraint(equalToConstant: 75),
+            imageView.heightAnchor.constraint(equalToConstant: 77.68),
+            imageView.centerYAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerYAnchor),
+            imageView.centerXAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerXAnchor)])
     }
     
     // MARK: - Status Bar
@@ -41,42 +80,13 @@ final class SplashViewController: UIViewController {
         let tabBarController = UIStoryboard(name: "Main", bundle: .main)
             .instantiateViewController(withIdentifier: "TabBarViewController")
         window.rootViewController = tabBarController
-        print("switchToTabBarController() called")
     }
-}
-
-// MARK: - Navigation (Prepare for Segue)
-
-extension SplashViewController {
     
-    // MARK: - Navigation
-    
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        print("prepare(for segue:) called with identifier: \(segue.identifier ?? "nil")")
-        if segue.identifier == ShowAuthenticationScreenSegueIdentifier {
-            guard
-                let navigationController = segue.destination as? UINavigationController,
-                let authViewController = navigationController.viewControllers[0] as? AuthViewController
-            else { fatalError("Failed to prepare for \(ShowAuthenticationScreenSegueIdentifier)") }
-            authViewController.delegate = self
-        } else {
-            super.prepare(for: segue, sender: sender)
-        }
-    }
-}
-
-// MARK: - AuthViewControllerDelegate
-
-extension SplashViewController: AuthViewControllerDelegate {
-    
-    // MARK: - Authentication
-    
-    func didAuthenticate(_ vc: AuthViewController) {
-        vc.dismiss(animated: true)
-        guard let token = oauth2TokenStorage.token else {
-            return
-        }
-        fetchProfile()
+    private func showAuthController() {
+        let authViewController = AuthViewController()
+        authViewController.delegate = self
+        authViewController.modalPresentationStyle = .fullScreen
+        present(authViewController, animated: true, completion: nil)
     }
     
     // MARK: - Fetch Profile
@@ -90,8 +100,10 @@ extension SplashViewController: AuthViewControllerDelegate {
         }
         profileService.fetchProfile(token: token) { [weak self] result in
             DispatchQueue.main.async {
+                guard let self = self else {
+                    UIBlockingProgressHUD.dismiss()
+                    return }
                 UIBlockingProgressHUD.dismiss()
-                guard let self = self else { return }
                 switch result {
                 case .success(let profile):
                     self.profile = profile
@@ -119,6 +131,11 @@ extension SplashViewController: AuthViewControllerDelegate {
                 print("Ошибка при загрузке URL изображения профиля: \(error.localizedDescription)")}
         }
     }
+}
+
+// MARK: - AuthViewControllerDelegate
+
+extension SplashViewController: AuthViewControllerDelegate {
     
     // MARK: - Authentication with Token
     
