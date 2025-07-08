@@ -1,8 +1,9 @@
 import UIKit
+import Kingfisher
 
 final class ProfileViewController: UIViewController {
     
-    // MARK: - Private Properties
+    // MARK: - Private UI Properties
     
     private var photoImage = UIImage()
     private var imageView = UIImageView()
@@ -10,6 +11,12 @@ final class ProfileViewController: UIViewController {
     private let nameLabel = UILabel()
     private let nicknameLabel = UILabel()
     private let textLabel = UILabel()
+    
+    // MARK: - Private Services
+    
+    private var profileImageServiceObserver: NSObjectProtocol?
+    private let profileService = ProfileService.shared
+    private let profileImageService = ProfileImageService.shared
     
     // MARK: - Lifecycle
     
@@ -22,13 +29,24 @@ final class ProfileViewController: UIViewController {
         setupNicknameLabel()
         setupTextLabel()
         setupConstraints()
+        profileImageServiceObserver = NotificationCenter.default
+            .addObserver(
+                forName: ProfileImageService.didChangeNotification,
+                object: nil,
+                queue: .main
+            ) { [weak self] _ in
+                guard let self = self else { return }
+                self.updateAvatar()
+            }
+        updateProfile()
+        updateAvatar()
     }
     
     // MARK: - View Setup
     
     private func setupView() {
         view.contentMode = .scaleToFill
-        view.backgroundColor = UIColor(named: "YP Black")
+        view.backgroundColor = UIColor(resource: .ypBlack)
     }
     
     // MARK: - ImageView Setup
@@ -37,8 +55,9 @@ final class ProfileViewController: UIViewController {
         photoImage = UIImage(named: "Photo") ?? UIImage(systemName: "person.crop.circle.fill")!
         imageView = UIImageView(image: photoImage)
         imageView.layer.masksToBounds = false
+        imageView.clipsToBounds = true
         imageView.layer.cornerRadius = 35
-        imageView.contentMode = .scaleAspectFit
+        imageView.contentMode = .scaleAspectFill
         imageView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(imageView)
     }
@@ -60,7 +79,7 @@ final class ProfileViewController: UIViewController {
     
     private func setupNameLabel() {
         nameLabel.text = "Екатерина Новикова"
-        nameLabel.textColor = UIColor(named: "YP White")
+        nameLabel.textColor = UIColor(resource: .ypWhite)
         nameLabel.font = UIFont.systemFont(ofSize: 23, weight: .bold)
         nameLabel.contentMode = .left
         nameLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -71,7 +90,7 @@ final class ProfileViewController: UIViewController {
     
     private func setupNicknameLabel() {
         nicknameLabel.text = "@ekaterina_nov"
-        nicknameLabel.textColor = UIColor(named: "YP Gray")
+        nicknameLabel.textColor = UIColor(resource: .ypGray)
         nicknameLabel.font = UIFont.systemFont(ofSize: 13, weight: .regular)
         nicknameLabel.contentMode = .left
         nicknameLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -82,7 +101,7 @@ final class ProfileViewController: UIViewController {
     
     private func setupTextLabel() {
         textLabel.text = "Hello, world!"
-        textLabel.textColor = UIColor(named: "YP White")
+        textLabel.textColor = UIColor(resource: .ypWhite)
         textLabel.font = UIFont.systemFont(ofSize: 13, weight: .regular)
         textLabel.contentMode = .left
         textLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -92,7 +111,9 @@ final class ProfileViewController: UIViewController {
     // MARK: - Actions
     
     @objc
-    private func didTapLogoutButton(){}
+    private func didTapLogoutButton(){
+        OAuth2TokenStorage.shared.removeToken()
+    }
     
     // MARK: - Layout Constraints
     
@@ -116,5 +137,32 @@ final class ProfileViewController: UIViewController {
             textLabel.leadingAnchor.constraint(equalTo: nameLabel.leadingAnchor),
             textLabel.topAnchor.constraint(equalTo: nicknameLabel.bottomAnchor, constant: 8),
         ])
+    }
+    
+    // MARK: - Private Methods
+    
+    private func updateProfile() {
+        guard let profile = profileService.profile else {
+            print("Профиль не загружен")
+            return
+        }
+        nameLabel.text = profile.name
+        nicknameLabel.text = profile.loginName
+        textLabel.text = profile.bio
+    }
+    
+    private func updateAvatar() {
+        guard let urlString = profileImageService.avatarURL,
+              let url = URL(string: urlString) else {
+            imageView.image = UIImage(named: "Photo")
+            return
+        }
+        let processor = RoundCornerImageProcessor(cornerRadius: 35)
+        imageView.kf.indicatorType = .activity
+        imageView.kf.setImage(
+            with: url,
+            placeholder: UIImage(named: "Photo"),
+            options: [.processor(processor)]
+        )
     }
 }

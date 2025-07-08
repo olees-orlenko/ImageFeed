@@ -2,28 +2,69 @@ import UIKit
 
 final class SplashViewController: UIViewController {
     
+    // MARK: - Private UI Properties
+    
+    private var logoImage = UIImage()
+    private var imageView = UIImageView()
+    
     // MARK: - Properties
     
     private let ShowAuthenticationScreenSegueIdentifier = "ShowAuthenticationScreen"
-    
     private let oauth2Service = OAuth2Service.shared
     private let oauth2TokenStorage = OAuth2TokenStorage.shared
+    private let profileService = ProfileService.shared
+    private let profileImageService = ProfileImageService.shared
+    private var profile: Profile?
     
     // MARK: - Lifecycle
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        setupView()
+        setupImageView()
+        setupConstraints()
+    }
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         print("oauth2TokenStorage.token: \(oauth2TokenStorage.token ?? "nil")")
         if let token = oauth2TokenStorage.token {
-            switchToTabBarController()
+            fetchProfile()
         } else {
-            performSegue(withIdentifier: ShowAuthenticationScreenSegueIdentifier, sender: nil)
+            showAuthController()
         }
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         setNeedsStatusBarAppearanceUpdate()
+    }
+    
+    // MARK: - View Setup
+    
+    private func setupView() {
+        view.contentMode = .scaleToFill
+        view.backgroundColor = UIColor(resource: .ypBlack)
+    }
+    
+    // MARK: - ImageView Setup
+    
+    private func setupImageView() {
+        logoImage = UIImage(named: "Logo") ?? UIImage(systemName: "questionmark.circle")!
+        imageView = UIImageView(image: logoImage)
+        imageView.contentMode = .scaleAspectFit
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(imageView)
+    }
+    
+    // MARK: - Layout Constraints
+    
+    private func setupConstraints() {
+        NSLayoutConstraint.activate([
+            imageView.widthAnchor.constraint(equalToConstant: 75),
+            imageView.heightAnchor.constraint(equalToConstant: 77.68),
+            imageView.centerYAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerYAnchor),
+            imageView.centerXAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerXAnchor)])
     }
     
     // MARK: - Status Bar
@@ -40,21 +81,54 @@ final class SplashViewController: UIViewController {
             .instantiateViewController(withIdentifier: "TabBarViewController")
         window.rootViewController = tabBarController
     }
-}
-
-// MARK: - Navigation (Prepare for Segue)
-
-extension SplashViewController {
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        print("prepare(for segue:) called with identifier: \(segue.identifier ?? "nil")")
-        if segue.identifier == ShowAuthenticationScreenSegueIdentifier {
-            guard
-                let navigationController = segue.destination as? UINavigationController,
-                let authViewController = navigationController.viewControllers[0] as? AuthViewController
-            else { fatalError("Failed to prepare for \(ShowAuthenticationScreenSegueIdentifier)") }
-            authViewController.delegate = self
-        } else {
-            super.prepare(for: segue, sender: sender)
+    
+    private func showAuthController() {
+        let authViewController = AuthViewController()
+        authViewController.delegate = self
+        authViewController.modalPresentationStyle = .fullScreen
+        present(authViewController, animated: true, completion: nil)
+    }
+    
+    // MARK: - Fetch Profile
+    
+    private func fetchProfile() {
+        UIBlockingProgressHUD.show()
+        guard let token = oauth2TokenStorage.token else {
+            UIBlockingProgressHUD.dismiss()
+            print("Токен не найден")
+            return
+        }
+        profileService.fetchProfile(token: token) { [weak self] result in
+            DispatchQueue.main.async {
+                UIBlockingProgressHUD.dismiss()
+                guard let self = self else {
+                    return }
+                UIBlockingProgressHUD.dismiss()
+                switch result {
+                case .success(let profile):
+                    self.profile = profile
+                    if let username = profile.username {
+                        self.fetchProfileImageURL(username: username)
+                    } else {
+                        print("Имя пользователя отсутствует, невозможно загрузить URL изображения профиля")
+                    }
+                    self.switchToTabBarController()
+                case .failure(let error):
+                    UIBlockingProgressHUD.dismiss()
+                    print("Не удалось загрузить профиль: \(error)")
+                }
+            }
+        }
+    }
+    
+    private func fetchProfileImageURL(username: String) {
+        profileImageService.fetchProfileImageURL(username: username) { [weak self] result in
+            guard let self = self else { return }
+            switch result {
+            case .success(let avatarURL):
+                print("URL изображения профиля успешно загружен: \(avatarURL)")
+            case .failure(let error):
+                print("Ошибка при загрузке URL изображения профиля: \(error.localizedDescription)")}
         }
     }
 }
@@ -63,11 +137,17 @@ extension SplashViewController {
 
 extension SplashViewController: AuthViewControllerDelegate {
     
-    // MARK: - Authentication
+    // MARK: - Authentication with Token
     
     func authViewController(_ vc: AuthViewController, didAuthenticateWithToken token: String) {
+        UIBlockingProgressHUD.show()
         OAuth2TokenStorage.shared.token = token
-        switchToTabBarController()
-        dismiss(animated: true)
+        vc.dismiss(animated: true) { [weak self] in
+            guard let self = self else {
+                UIBlockingProgressHUD.dismiss()
+                return
+            }
+            self.fetchProfile()
+        }
     }
 }

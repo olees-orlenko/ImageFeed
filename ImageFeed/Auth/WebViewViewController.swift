@@ -7,16 +7,27 @@ final class WebViewViewController: UIViewController{
     
     weak var delegate: WebViewViewControllerDelegate?
     
-    // MARK: - Private Properties
+    // MARK: - Private UI Properties
     
     private var webView = WKWebView()
     private var backButton = UIBarButtonItem()
     private var progressView = UIProgressView()
     
+    // MARK: - Private Properties
+    
+    private var estimatedProgressObservation: NSKeyValueObservation?
+    
     // MARK: - Lifecycle
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        estimatedProgressObservation = webView.observe(
+            \.estimatedProgress,
+             options: [],
+             changeHandler: { [weak self] _, _ in
+                 guard let self = self else { return }
+                 self.updateProgress()
+             })
         webView.navigationDelegate = self
         loadAuthView()
         setupView()
@@ -25,36 +36,6 @@ final class WebViewViewController: UIViewController{
         setProgress()
         setupConstraints()
         updateProgress()
-    }
-    
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-        webView.addObserver(
-            self,
-            forKeyPath: #keyPath(WKWebView.estimatedProgress),
-            options: .new,
-            context: nil)
-        updateProgress()
-    }
-    
-    override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-        webView.removeObserver(self, forKeyPath: #keyPath(WKWebView.estimatedProgress), context: nil)
-    }
-    
-    // MARK: - KVO
-    
-    override func observeValue(
-        forKeyPath keyPath: String?,
-        of object: Any?,
-        change: [NSKeyValueChangeKey : Any]?,
-        context: UnsafeMutableRawPointer?
-    ) {
-        if keyPath == #keyPath(WKWebView.estimatedProgress) {
-            updateProgress()
-        } else {
-            super.observeValue(forKeyPath: keyPath, of: object, change: change, context: context)
-        }
     }
     
     // MARK: - Progress Update
@@ -97,7 +78,7 @@ final class WebViewViewController: UIViewController{
     
     private func setupWebView() {
         webView.contentMode = .scaleToFill
-        view.backgroundColor = UIColor(named: "YP White")
+        view.backgroundColor = UIColor(resource: .ypWhite)
         webView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(webView)
     }
@@ -106,7 +87,7 @@ final class WebViewViewController: UIViewController{
     
     private func setProgress() {
         progressView = UIProgressView(progressViewStyle: .default)
-        progressView.progressTintColor = UIColor(named: "YP Black")
+        progressView.progressTintColor = UIColor(resource: .ypBlack)
         progressView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(progressView)
     }

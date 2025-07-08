@@ -5,4 +5,9 @@ enum NetworkError: Error {
     case invalidStatusCode(message: String)
     case noData(message: String)
     case decodingError(message: String)
+    case invalidURL(message: String)
+}
+
+enum AuthServiceError: Error {
+    case invalidRequest
 }
