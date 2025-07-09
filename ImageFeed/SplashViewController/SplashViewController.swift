@@ -44,7 +44,7 @@ final class SplashViewController: UIViewController {
     
     private func setupView() {
         view.contentMode = .scaleToFill
-        view.backgroundColor = UIColor(named: "YP Black")
+        view.backgroundColor = UIColor(resource: .ypBlack)
     }
     
     // MARK: - ImageView Setup
@@ -100,8 +100,8 @@ final class SplashViewController: UIViewController {
         }
         profileService.fetchProfile(token: token) { [weak self] result in
             DispatchQueue.main.async {
+                UIBlockingProgressHUD.dismiss()
                 guard let self = self else {
-                    UIBlockingProgressHUD.dismiss()
                     return }
                 UIBlockingProgressHUD.dismiss()
                 switch result {

@@ -51,12 +51,13 @@ final class ProfileImageService{
         guard let url = URL(string: "\(WebViewConstants.unsplashProfileImageURLString)/\(username)") else {
             print("Ошибка: Не удалось создать URL из WebViewConstants.unsplashProfileImageURLString")
             guard let newURL = URL(string: "https://api.unsplash.com/users/\(username)") else {
-                fatalError("Failed to create new URL")
+                assertionFailure("Failed to create new URL")
+                return URLRequest(url: URL(fileURLWithPath: ""))
             }
             return URLRequest(url: newURL)
         }
         var request = URLRequest(url: url)
-        request.httpMethod = "GET"
+        request.httpMethod = HttpConstants.get.rawValue
         if let token = OAuth2TokenStorage.shared.token {
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         } else {

@@ -52,7 +52,8 @@ final class OAuth2Service {
         guard let url = URL(string: WebViewConstants.unsplashAccessTokenURLString) else {
             print("Ошибка: Не удалось создать URL из WebViewConstants.unsplashAccessTokenURLString")
             guard let newURL = URL(string: "https://unsplash.com/oauth/token") else {
-                fatalError("Failed to create new URL")
+                assertionFailure("Не удалось создать новый URL")
+                return URLRequest(url: URL(fileURLWithPath: ""))
             }
             return URLRequest(url: newURL)
         }
@@ -68,7 +69,7 @@ final class OAuth2Service {
         }
             .joined(separator: "&")
         var request = URLRequest(url: url)
-        request.httpMethod = "POST"
+        request.httpMethod = HttpConstants.post.rawValue
         request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
         request.httpBody = postString.data(using: .utf8)
         if let body = request.httpBody, let bodyString = String(data: body, encoding: .utf8) {

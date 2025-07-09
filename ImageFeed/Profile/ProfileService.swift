@@ -50,12 +50,13 @@ final class ProfileService {
         guard let url = URL(string: WebViewConstants.unsplashProfileURLString) else {
             print("Ошибка: Не удалось создать URL из WebViewConstants.unsplashProfileURLString")
             guard let newURL = URL(string: "https://api.unsplash.com/me") else {
-                fatalError("Failed to create new URL")
+                assertionFailure("Failed to create new URL")
+                return URLRequest(url: URL(fileURLWithPath: ""))
             }
             return URLRequest(url: newURL)
         }
         var request = URLRequest(url: url)
-        request.httpMethod = "GET"
+        request.httpMethod = HttpConstants.get.rawValue
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         print("URLRequest URL: \(request.url?.absoluteString ?? "nil")")
         print("URLRequest HTTP Method: \(request.httpMethod ?? "GET")")

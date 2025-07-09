@@ -28,7 +28,7 @@ final class AuthViewController: UIViewController {
     
     private func setupView() {
         view.contentMode = .scaleToFill
-        view.backgroundColor = UIColor(named: "YP Black")
+        view.backgroundColor = UIColor(resource: .ypBlack)
     }
     
     // MARK: - ImageView Setup
@@ -49,8 +49,8 @@ final class AuthViewController: UIViewController {
         loginButton = UIButton(type: .system)
         loginButton.setTitle("Войти", for: .normal)
         loginButton.titleLabel?.font = UIFont.systemFont(ofSize: 17, weight: .bold)
-        loginButton.setTitleColor(UIColor(named: "YP Black"), for: .normal)
-        loginButton.backgroundColor = UIColor(named: "YP White")
+        loginButton.setTitleColor(UIColor(resource: .ypBlack), for: .normal)
+        loginButton.backgroundColor = UIColor(resource: .ypWhite)
         loginButton.layer.masksToBounds = true
         loginButton.layer.cornerRadius = 16
         loginButton.contentMode = .scaleToFill
@@ -144,6 +144,7 @@ extension AuthViewController: WebViewViewControllerDelegate {
     private func fetchOAuthToken(code: String, completion: @escaping (Result<String, Error>) -> Void) {
         OAuth2Service.shared.fetchOAuthToken(code) { [weak self] result in
             DispatchQueue.main.async {
+                UIBlockingProgressHUD.dismiss()
                 guard let self = self else { return }
                 UIBlockingProgressHUD.dismiss()
                 self.isFetchingToken = false

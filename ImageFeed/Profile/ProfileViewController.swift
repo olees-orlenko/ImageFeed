@@ -46,7 +46,7 @@ final class ProfileViewController: UIViewController {
     
     private func setupView() {
         view.contentMode = .scaleToFill
-        view.backgroundColor = UIColor(named: "YP Black")
+        view.backgroundColor = UIColor(resource: .ypBlack)
     }
     
     // MARK: - ImageView Setup
@@ -79,7 +79,7 @@ final class ProfileViewController: UIViewController {
     
     private func setupNameLabel() {
         nameLabel.text = "Екатерина Новикова"
-        nameLabel.textColor = UIColor(named: "YP White")
+        nameLabel.textColor = UIColor(resource: .ypWhite)
         nameLabel.font = UIFont.systemFont(ofSize: 23, weight: .bold)
         nameLabel.contentMode = .left
         nameLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -90,7 +90,7 @@ final class ProfileViewController: UIViewController {
     
     private func setupNicknameLabel() {
         nicknameLabel.text = "@ekaterina_nov"
-        nicknameLabel.textColor = UIColor(named: "YP Gray")
+        nicknameLabel.textColor = UIColor(resource: .ypGray)
         nicknameLabel.font = UIFont.systemFont(ofSize: 13, weight: .regular)
         nicknameLabel.contentMode = .left
         nicknameLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -101,7 +101,7 @@ final class ProfileViewController: UIViewController {
     
     private func setupTextLabel() {
         textLabel.text = "Hello, world!"
-        textLabel.textColor = UIColor(named: "YP White")
+        textLabel.textColor = UIColor(resource: .ypWhite)
         textLabel.font = UIFont.systemFont(ofSize: 13, weight: .regular)
         textLabel.contentMode = .left
         textLabel.translatesAutoresizingMaskIntoConstraints = false

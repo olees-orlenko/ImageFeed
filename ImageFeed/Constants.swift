@@ -20,3 +20,8 @@ enum WebViewConstants {
     static let unsplashProfileURLString = "https://api.unsplash.com/me"
     static let unsplashProfileImageURLString = "https://api.unsplash.com/users"
 }
+
+enum HttpConstants: String {
+    case get = "GET"
+    case post = "POST"
+}
