@@ -7,6 +7,8 @@ final class ImagesListViewController: UIViewController {
     private let photosName: [String] = Array(0..<20).map{ "\($0)" }
     private let currentDate = Date()
     private let showSingleImageSegueIdentifier = "ShowSingleImage"
+    private let imagesListService = ImagesListService.shared
+    private var imageListServiceObserver: NSObjectProtocol?
     
     // MARK: - @IBOutlet
     
@@ -17,6 +19,14 @@ final class ImagesListViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         tableView.contentInset = UIEdgeInsets(top: 12, left: 0, bottom: 12, right: 0)
+        imageListServiceObserver = NotificationCenter.default
+            .addObserver(
+                forName: ImagesListService.didChangeNotification,
+                object: nil,
+                queue: .main
+            ) { [weak self] _ in
+                guard let self = self else { return }
+            }
     }
     
     // MARK: - Navigation
@@ -72,6 +82,23 @@ extension ImagesListViewController: UITableViewDataSource {
         
         configCell(for: imageListCell, with: indexPath)
         return imageListCell
+    }
+
+    func tableView(
+        _ tableView: UITableView,
+        willDisplay cell: UITableViewCell,
+        forRowAt indexPath: IndexPath
+    ) {
+        if indexPath.row + 1 == imagesListService.photos.count {
+            if !imagesListService.isLoading {
+                if let token = OAuth2TokenStorage.shared.token {
+                    imagesListService.fetchPhotosNextPage(token: token) { _ in
+                    }
+                } else {
+                    print("Токен отсутствует")
+                }
+            }
+        }
     }
 }
 
