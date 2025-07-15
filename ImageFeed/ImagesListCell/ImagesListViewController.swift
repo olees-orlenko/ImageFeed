@@ -1,10 +1,14 @@
 import UIKit
+import Kingfisher
 
 final class ImagesListViewController: UIViewController {
     
+    // MARK: - Properties
+    
+    var photos: [Photo] = []
+    
     // MARK: - Private Properties
     
-    private let photosName: [String] = Array(0..<20).map{ "\($0)" }
     private let currentDate = Date()
     private let showSingleImageSegueIdentifier = "ShowSingleImage"
     private let imagesListService = ImagesListService.shared
@@ -26,30 +30,39 @@ final class ImagesListViewController: UIViewController {
                 queue: .main
             ) { [weak self] _ in
                 guard let self = self else { return }
+                self.updateTableViewAnimated()
             }
+        if let token = OAuth2TokenStorage.shared.token {
+            imagesListService.fetchPhotosNextPage(token: token) { [weak self] _ in
+            }
+        }
     }
-    
+
     // MARK: - Navigation
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == showSingleImageSegueIdentifier {
-            guard
-                let viewController = segue.destination as? SingleImageViewController,
-                let indexPath = sender as? IndexPath
-            else {
-                assertionFailure("Invalid segue destination")
-                return
-            }
-            guard indexPath.row < photosName.count else {
-                return
-            }
-            let imageName = photosName[indexPath.row]
-            guard let image = UIImage(named: imageName) else {
-                return
-            }
-            viewController.image = image
+            guard let viewController = segue.destination as? SingleImageViewController else { return }
+            guard let indexPath = sender as? IndexPath else { return }
+            let photo = photos[indexPath.row]
+            let imageURL = URL(string: photo.largeImageURL)
+            viewController.imageURL = imageURL
         } else {
             super.prepare(for: segue, sender: sender)
+        }
+    }
+    
+    func updateTableViewAnimated() {
+        let oldCount = photos.count
+        let newCount = imagesListService.photos.count
+        photos = imagesListService.photos
+        if oldCount != newCount {
+            tableView.performBatchUpdates {
+                let indexPaths = (oldCount..<newCount).map { i in
+                    IndexPath(row: i, section: 0)
+                }
+                tableView.insertRows(at: indexPaths, with: .automatic)
+            } completion: { _ in }
         }
     }
 }
@@ -69,7 +82,7 @@ extension DateFormatter {
 
 extension ImagesListViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        photosName.count
+        photos.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -79,17 +92,37 @@ extension ImagesListViewController: UITableViewDataSource {
         ) as? ImagesListCell else {
             return UITableViewCell()
         }
-        
-        configCell(for: imageListCell, with: indexPath)
+        let photo = photos[indexPath.row]
+        let url = URL(string: photo.thumbImageURL)
+        imageListCell.cellImage.kf.indicatorType = .activity
+        imageListCell.task = imageListCell.cellImage.kf.setImage(
+            with: url,
+            placeholder: UIImage(named: "Stub"),
+            options: [.transition(.fade(0.2))],
+            completionHandler: { [weak self] result in
+                guard let self = self else { return }
+                switch result {
+                case .success(_):
+                    break
+                case .failure(let error):
+                    print("Ошибка загрузки картинки: \(error)")
+                }
+            }
+        )
+        if let createdAt = photo.createdAt {
+            imageListCell.dateLabel.text = DateFormatter.longStyle.string(from: createdAt)
+        } else {
+            imageListCell.dateLabel.text = DateFormatter.longStyle.string(from: currentDate)
+        }
         return imageListCell
     }
-
+    
     func tableView(
         _ tableView: UITableView,
         willDisplay cell: UITableViewCell,
         forRowAt indexPath: IndexPath
     ) {
-        if indexPath.row + 1 == imagesListService.photos.count {
+        if indexPath.row == photos.count - 1 {
             if !imagesListService.isLoading {
                 if let token = OAuth2TokenStorage.shared.token {
                     imagesListService.fetchPhotosNextPage(token: token) { _ in
@@ -102,22 +135,6 @@ extension ImagesListViewController: UITableViewDataSource {
     }
 }
 
-// MARK: - Configuration
-
-extension ImagesListViewController {
-    func configCell(for cell: ImagesListCell, with indexPath: IndexPath) {
-        let imageName = photosName[indexPath.row]
-        guard let image = UIImage(named: imageName) else {
-            return
-        }
-        cell.cellImage.image = image
-        cell.dateLabel.text = DateFormatter.longStyle.string(from: currentDate)
-        let isLiked = indexPath.row % 2 == 0
-        let likeImage = isLiked ? UIImage(named: "Active") : UIImage(named: "No Active")
-        cell.likeButton.setImage(likeImage, for: .normal)
-    }
-}
-
 // MARK: - UITableViewDelegate
 
 extension ImagesListViewController: UITableViewDelegate {
@@ -126,14 +143,14 @@ extension ImagesListViewController: UITableViewDelegate {
     }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        let imageName = photosName[indexPath.row]
-        guard let image = UIImage(named: imageName) else {
+        let photo = photos[indexPath.row]
+        guard let imageURL = URL(string: photo.thumbImageURL) else {
             return 0
         }
         let imageTopBottomInset: CGFloat = 4
         let imageLeftRightInset: CGFloat = 16
-        let imageWidth = image.size.width
-        let imageHeight = image.size.height
+        let imageWidth = CGFloat(photo.size.width)
+        let imageHeight = CGFloat(photo.size.height)
         let imageViewWidth = tableView.bounds.width - imageLeftRightInset - imageLeftRightInset
         let imageScale = imageViewWidth / imageWidth
         let imageViewHeight = imageHeight * imageScale

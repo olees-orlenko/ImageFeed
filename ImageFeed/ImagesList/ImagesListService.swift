@@ -51,11 +51,11 @@ final class ImagesListService {
                     let photo = Photo(
                         id: photoResult.id,
                         size: size,
-                        createdAt: photoResult.created_at?.toDateFormat(),
+                        createdAt: photoResult.createdAt?.toDateFormat(),
                         welcomeDescription: photoResult.description,
                         thumbImageURL: imageURL,
                         largeImageURL: imageURL,
-                        isLiked: photoResult.liked_by_user
+                        isLiked: photoResult.likedByUser
                     )
                     photos.append(photo)
                 }

@@ -1,4 +1,5 @@
 import UIKit
+import Kingfisher
 
 final class ImagesListCell: UITableViewCell {
     
@@ -13,10 +14,11 @@ final class ImagesListCell: UITableViewCell {
     @IBOutlet var cellImage: UIImageView!
     
     @IBOutlet var gradientView: UIView!
-
+    
     // MARK: - Private Properties
     
     private var gradientLayer: CAGradientLayer!
+    var task: DownloadTask?
     
     // MARK: - Lifecycle
     
@@ -28,6 +30,11 @@ final class ImagesListCell: UITableViewCell {
     override func layoutSubviews() {
         super.layoutSubviews()
         gradientLayer.frame = gradientView.bounds
+    }
+    
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        cellImage.kf.cancelDownloadTask()
     }
     
     // MARK: - Setup Gradient

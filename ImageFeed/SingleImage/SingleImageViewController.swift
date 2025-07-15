@@ -12,6 +12,7 @@ final class SingleImageViewController: UIViewController {
             rescaleAndCenterImageInScrollView(image: image)
         }
     }
+    var imageURL: URL?
     
     // MARK: - @IBOutlet
     
@@ -25,19 +26,30 @@ final class SingleImageViewController: UIViewController {
         super.viewDidLoad()
         scrollView.minimumZoomScale = 0.1
         scrollView.maximumZoomScale = 1.25
-        
-        guard let image else { return }
-        imageView.image = image
-        imageView.frame.size = image.size
-        rescaleAndCenterImageInScrollView(image: image)
+        scrollView.delegate = self
+        if let imageURL = imageURL {
+            imageView.kf.indicatorType = .activity
+            imageView.kf.setImage(with: imageURL) { [weak self] result in
+                guard let self = self else { return }
+                switch result {
+                case .success(let imageResult):
+                    let image = imageResult.image
+                    self.imageView.image = image
+                    self.imageView.frame.size = image.size
+                    self.rescaleAndCenterImageInScrollView(image: image)
+                case .failure(let error):
+                    print("Ошибка загрузки картинки: \(error)")
+                }
+            }
+        }
     }
     
     // MARK: - Actions
     
     @IBAction func didTapShareButton(_ sender: UIButton) {
-        guard let image else { return }
+        guard let imageURL else { return }
         let share = UIActivityViewController(
-            activityItems: [image],
+            activityItems: [imageURL],
             applicationActivities: nil
         )
         share.overrideUserInterfaceStyle = .dark
