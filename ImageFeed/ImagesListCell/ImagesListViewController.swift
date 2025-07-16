@@ -37,7 +37,7 @@ final class ImagesListViewController: UIViewController {
             }
         }
     }
-
+    
     // MARK: - Navigation
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
@@ -92,6 +92,7 @@ extension ImagesListViewController: UITableViewDataSource {
         ) as? ImagesListCell else {
             return UITableViewCell()
         }
+        imageListCell.delegate = self
         let photo = photos[indexPath.row]
         let url = URL(string: photo.thumbImageURL)
         imageListCell.cellImage.kf.indicatorType = .activity
@@ -114,6 +115,8 @@ extension ImagesListViewController: UITableViewDataSource {
         } else {
             imageListCell.dateLabel.text = DateFormatter.longStyle.string(from: currentDate)
         }
+        imageListCell.photoId = photo.id
+        imageListCell.setIsLiked(!photo.isLiked)
         return imageListCell
     }
     
@@ -155,5 +158,38 @@ extension ImagesListViewController: UITableViewDelegate {
         let imageScale = imageViewWidth / imageWidth
         let imageViewHeight = imageHeight * imageScale
         return imageViewHeight + imageTopBottomInset + imageTopBottomInset
+    }
+}
+
+// MARK: - ImagesListCellDelegate
+
+extension ImagesListViewController: ImagesListCellDelegate {
+    
+    func imageListCellDidTapLike(_ cell: ImagesListCell) {
+        guard let indexPath = tableView.indexPath(for: cell) else { return }
+        let photo = photos[indexPath.row]
+        UIBlockingProgressHUD.show()
+        imagesListService.changeLike(photoId: photo.id, isLike: !photo.isLiked) { result in
+            switch result {
+            case .success:
+                DispatchQueue.main.async {
+                    if let index = self.photos.firstIndex(where: { $0.id == photo.id }) {
+                        self.photos[index].isLiked = !photo.isLiked
+                        cell.setIsLiked(!photo.isLiked)
+                    }
+                }
+                UIBlockingProgressHUD.dismiss()
+            case .failure(let error):
+                UIBlockingProgressHUD.dismiss()
+                print("Ошибка: \(error)")
+                let alert = UIAlertController(
+                    title: "Что-то пошло не так(",
+                    message: "Не удалось изменить статус лайка",
+                    preferredStyle: .alert
+                )
+                alert.addAction(UIAlertAction(title: "Ок", style: .default, handler: nil))
+                self.present(alert, animated: true, completion: nil)
+            }
+        }
     }
 }

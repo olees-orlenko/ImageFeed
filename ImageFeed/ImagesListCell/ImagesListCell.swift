@@ -3,6 +3,12 @@ import Kingfisher
 
 final class ImagesListCell: UITableViewCell {
     
+    // MARK: - Properties
+    
+    weak var delegate: ImagesListCellDelegate?
+    var photoId: String?
+    var task: DownloadTask?
+
     // MARK: - Static Properties
     
     static let reuseIdentifier = "ImagesListCell"
@@ -10,7 +16,9 @@ final class ImagesListCell: UITableViewCell {
     // MARK: - @IBOutlet
     
     @IBOutlet var likeButton: UIButton!
+    
     @IBOutlet var dateLabel: UILabel!
+    
     @IBOutlet var cellImage: UIImageView!
     
     @IBOutlet var gradientView: UIView!
@@ -18,7 +26,12 @@ final class ImagesListCell: UITableViewCell {
     // MARK: - Private Properties
     
     private var gradientLayer: CAGradientLayer!
-    var task: DownloadTask?
+    
+    // MARK: - Actions
+    
+    @IBAction func likeButtonClicked(_ sender: UIButton) {
+        delegate?.imageListCellDidTapLike(self)
+    }
     
     // MARK: - Lifecycle
     
@@ -51,4 +64,11 @@ final class ImagesListCell: UITableViewCell {
         gradientView.clipsToBounds = true
         contentView.clipsToBounds = false
     }
+    
+    // MARK: - Public Methods
+    
+    func setIsLiked(_ isLiked: Bool) {
+            let likeImage = isLiked ? UIImage(named: "Active") : UIImage(named: "No Active")
+            likeButton.setImage(likeImage, for: .normal)
+        }
 }

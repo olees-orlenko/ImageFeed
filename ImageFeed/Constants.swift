@@ -26,4 +26,5 @@ enum WebViewConstants {
 enum HttpConstants: String {
     case get = "GET"
     case post = "POST"
+    case delete = "DELETE"
 }
