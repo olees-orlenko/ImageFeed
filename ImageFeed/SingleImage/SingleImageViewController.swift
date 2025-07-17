@@ -27,22 +27,8 @@ final class SingleImageViewController: UIViewController {
         scrollView.minimumZoomScale = 0.1
         scrollView.maximumZoomScale = 1.25
         scrollView.delegate = self
-        if let imageURL = imageURL {
-            imageView.kf.indicatorType = .activity
-            imageView.kf.setImage(with: imageURL) { [weak self] result in
-                guard let self = self else { return }
-                switch result {
-                case .success(let imageResult):
-                    let image = imageResult.image
-                    self.imageView.image = image
-                    self.imageView.frame.size = image.size
-                    self.rescaleAndCenterImageInScrollView(image: image)
-                case .failure(let error):
-                    print("Ошибка загрузки картинки: \(error)")
-                }
-            }
+        loadImage()
         }
-    }
     
     // MARK: - Actions
     
@@ -77,6 +63,43 @@ final class SingleImageViewController: UIViewController {
         let x = (newContentSize.width - visibleRectSize.width) / 2
         let y = (newContentSize.height - visibleRectSize.height) / 2
         scrollView.setContentOffset(CGPoint(x: x, y: y), animated: false)
+    }
+    
+    private func loadImage() {
+            guard let imageURL = imageURL else {
+                UIBlockingProgressHUD.dismiss()
+                return
+            }
+            UIBlockingProgressHUD.show()
+            imageView.kf.indicatorType = .activity
+            imageView.kf.setImage(with: imageURL) { [weak self] result in
+                UIBlockingProgressHUD.dismiss()
+                guard let self = self else { return }
+                switch result {
+                case .success(let imageResult):
+                    let image = imageResult.image
+                    self.imageView.image = image
+                    self.imageView.frame.size = image.size
+                    self.rescaleAndCenterImageInScrollView(image: image)
+                case .failure(let error):
+                    print("Ошибка загрузки картинки: \(error)")
+                    self.showError()
+                }
+            }
+        }
+        
+    private func showError() {
+        let alert = UIAlertController(
+            title: "Что-то пошло не так.",
+            message: "Не удалось загрузить картинку. Попробовать ещё раз?",
+            preferredStyle: .alert
+        )
+        alert.addAction(UIAlertAction(title: "Не надо", style: .cancel, handler: nil))
+        alert.addAction(UIAlertAction(title: "Повторить", style: .default, handler: { [weak self] _ in
+            guard let self = self else { return }
+            self.loadImage()
+        }))
+        self.present(alert, animated: true, completion: nil)
     }
 }
 
