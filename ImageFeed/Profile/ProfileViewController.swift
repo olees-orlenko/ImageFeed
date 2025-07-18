@@ -112,7 +112,7 @@ final class ProfileViewController: UIViewController {
     
     @objc
     private func didTapLogoutButton(){
-        OAuth2TokenStorage.shared.removeToken()
+        ProfileLogoutService.shared.logout()
     }
     
     // MARK: - Layout Constraints

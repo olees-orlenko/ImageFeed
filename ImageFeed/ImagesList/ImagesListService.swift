@@ -20,6 +20,11 @@ final class ImagesListService {
     
     // MARK: - Public Methods
     
+    func clean() {
+        photos = []
+        lastLoadedPage = 0
+    }
+    
     func fetchPhotosNextPage(token: String, completion: @escaping (Result<[Photo], Error>) -> Void) {
         guard !isLoading else {
             print("Загрузка уже выполняется.")
