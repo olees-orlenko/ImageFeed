@@ -112,7 +112,7 @@ final class ProfileViewController: UIViewController {
     
     @objc
     private func didTapLogoutButton(){
-        ProfileLogoutService.shared.logout()
+        showLogoutAlert()
     }
     
     // MARK: - Layout Constraints
@@ -164,5 +164,21 @@ final class ProfileViewController: UIViewController {
             placeholder: UIImage(named: "Photo"),
             options: [.processor(processor)]
         )
+    }
+    
+    private func showLogoutAlert() {
+        let alert = UIAlertController(
+            title: "Пока, пока!",
+            message: "Уверены, что хотите выйти?",
+            preferredStyle: .alert
+        )
+        let confirm = UIAlertAction(title: "Да", style: .default) { [weak self] _ in
+            ProfileLogoutService.shared.logout()
+        }
+        let cancel = UIAlertAction(title: "Нет", style: .default) { _ in
+        }
+        alert.addAction(confirm)
+        alert.addAction(cancel)
+        present(alert, animated: true, completion: nil)
     }
 }

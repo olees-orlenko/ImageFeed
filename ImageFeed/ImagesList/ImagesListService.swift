@@ -174,10 +174,12 @@ final class ImagesListService {
 // MARK: - DateFormatterForString
 
 extension String {
+    private static let ISO8601formatter: ISO8601DateFormatter = {
+        let formatter = ISO8601DateFormatter()
+        return formatter
+    }()
+    
     func toDateFormat() -> Date? {
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ssZ"
-        dateFormatter.locale = Locale(identifier: "ru_RU")
-        return dateFormatter.date(from: self)
+        return String.ISO8601formatter.date(from: self)
     }
 }

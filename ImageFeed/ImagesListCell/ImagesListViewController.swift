@@ -9,7 +9,6 @@ final class ImagesListViewController: UIViewController {
     
     // MARK: - Private Properties
     
-    private let currentDate = Date()
     private let showSingleImageSegueIdentifier = "ShowSingleImage"
     private let imagesListService = ImagesListService.shared
     private var imageListServiceObserver: NSObjectProtocol?
@@ -115,10 +114,10 @@ extension ImagesListViewController: UITableViewDataSource {
         if let createdAt = photo.createdAt {
             imageListCell.dateLabel.text = DateFormatter.longStyle.string(from: createdAt)
         } else {
-            imageListCell.dateLabel.text = DateFormatter.longStyle.string(from: currentDate)
+            imageListCell.dateLabel.text = ""
         }
         imageListCell.photoId = photo.id
-        imageListCell.setIsLiked(!photo.isLiked)
+        imageListCell.setIsLiked(photo.isLiked)
         return imageListCell
     }
     
