@@ -52,7 +52,8 @@ final class ProfileViewController: UIViewController {
     // MARK: - ImageView Setup
     
     private func setupImageView() {
-        photoImage = UIImage(named: "Photo") ?? UIImage(systemName: "person.crop.circle.fill")!
+        let defaultphotoImage = UIImage(systemName: "person.crop.circle.fill")
+        let photoImage = UIImage(named: "Photo") ?? defaultphotoImage
         imageView = UIImageView(image: photoImage)
         imageView.layer.masksToBounds = false
         imageView.clipsToBounds = true
@@ -65,12 +66,14 @@ final class ProfileViewController: UIViewController {
     // MARK: - LogoutButton Setup
     
     private func setupLogoutButton() {
+        let defaultImage = UIImage(systemName: "arrow.backward")
+        let image = UIImage(named: "logout button") ?? defaultImage
         logoutButton = UIButton.systemButton(
-            with: UIImage(named: "logout button") ?? UIImage(systemName: "arrow.backward")!,
+            with: image ?? UIImage(),
             target: self,
             action: #selector(didTapLogoutButton)
         )
-        logoutButton.contentMode = .scaleToFill
+        logoutButton.contentMode = .scaleAspectFit
         logoutButton.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(logoutButton)
     }
@@ -112,7 +115,7 @@ final class ProfileViewController: UIViewController {
     
     @objc
     private func didTapLogoutButton(){
-        OAuth2TokenStorage.shared.removeToken()
+        showLogoutAlert()
     }
     
     // MARK: - Layout Constraints
@@ -164,5 +167,21 @@ final class ProfileViewController: UIViewController {
             placeholder: UIImage(named: "Photo"),
             options: [.processor(processor)]
         )
+    }
+    
+    private func showLogoutAlert() {
+        let alert = UIAlertController(
+            title: "Пока, пока!",
+            message: "Уверены, что хотите выйти?",
+            preferredStyle: .alert
+        )
+        let confirm = UIAlertAction(title: "Да", style: .default) { [weak self] _ in
+            ProfileLogoutService.shared.logout()
+        }
+        let cancel = UIAlertAction(title: "Нет", style: .default) { _ in
+        }
+        alert.addAction(confirm)
+        alert.addAction(cancel)
+        present(alert, animated: true, completion: nil)
     }
 }

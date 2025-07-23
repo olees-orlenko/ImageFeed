@@ -13,7 +13,12 @@ final class ProfileService {
     private var task: URLSessionTask?
     private(set) var profile: Profile?
     
+    
     // MARK: - Public Methods
+    
+    func clean() {
+        profile = nil
+    }
     
     func fetchProfile(token: String, completion: @escaping (Result<Profile, Error>) -> Void) {
         assert(Thread.isMainThread)

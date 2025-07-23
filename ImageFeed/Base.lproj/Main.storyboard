@@ -84,6 +84,9 @@
                                                     </constraints>
                                                     <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
                                                     <state key="normal" title="Like Button" image="Active"/>
+                                                    <connections>
+                                                        <action selector="likeButtonClicked:" destination="eNU-EC-sxZ" eventType="touchUpInside" id="gOL-Jq-3n8"/>
+                                                    </connections>
                                                 </button>
                                                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="ZAj-CM-1Em">
                                                     <rect key="frame" x="16" y="188" width="361" height="30"/>

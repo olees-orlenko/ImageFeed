@@ -1,22 +1,37 @@
 import UIKit
+import Kingfisher
 
 final class ImagesListCell: UITableViewCell {
     
+    // MARK: - Properties
+    
+    weak var delegate: ImagesListCellDelegate?
+    var photoId: String?
+    var task: DownloadTask?
+
     // MARK: - Static Properties
     
     static let reuseIdentifier = "ImagesListCell"
     
     // MARK: - @IBOutlet
     
-    @IBOutlet var likeButton: UIButton!
-    @IBOutlet var dateLabel: UILabel!
-    @IBOutlet var cellImage: UIImageView!
+    @IBOutlet weak var likeButton: UIButton!
     
-    @IBOutlet var gradientView: UIView!
-
+    @IBOutlet weak var dateLabel: UILabel!
+    
+    @IBOutlet weak var cellImage: UIImageView!
+    
+    @IBOutlet weak var gradientView: UIView!
+    
     // MARK: - Private Properties
     
     private var gradientLayer: CAGradientLayer!
+    
+    // MARK: - Actions
+    
+    @IBAction func likeButtonClicked(_ sender: UIButton) {
+        delegate?.imageListCellDidTapLike(self)
+    }
     
     // MARK: - Lifecycle
     
@@ -28,6 +43,11 @@ final class ImagesListCell: UITableViewCell {
     override func layoutSubviews() {
         super.layoutSubviews()
         gradientLayer.frame = gradientView.bounds
+    }
+    
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        cellImage.kf.cancelDownloadTask()
     }
     
     // MARK: - Setup Gradient
@@ -44,4 +64,11 @@ final class ImagesListCell: UITableViewCell {
         gradientView.clipsToBounds = true
         contentView.clipsToBounds = false
     }
+    
+    // MARK: - Public Methods
+    
+    func setIsLiked(_ isLiked: Bool) {
+            let likeImage = isLiked ? UIImage(named: "Active") : UIImage(named: "No Active")
+            likeButton.setImage(likeImage, for: .normal)
+        }
 }
