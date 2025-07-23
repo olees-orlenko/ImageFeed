@@ -52,7 +52,8 @@ final class ProfileViewController: UIViewController {
     // MARK: - ImageView Setup
     
     private func setupImageView() {
-        photoImage = UIImage(named: "Photo") ?? UIImage(systemName: "person.crop.circle.fill")!
+        let defaultphotoImage = UIImage(systemName: "person.crop.circle.fill")
+        let photoImage = UIImage(named: "Photo") ?? defaultphotoImage
         imageView = UIImageView(image: photoImage)
         imageView.layer.masksToBounds = false
         imageView.clipsToBounds = true
@@ -65,12 +66,14 @@ final class ProfileViewController: UIViewController {
     // MARK: - LogoutButton Setup
     
     private func setupLogoutButton() {
+        let defaultImage = UIImage(systemName: "arrow.backward")
+        let image = UIImage(named: "logout button") ?? defaultImage
         logoutButton = UIButton.systemButton(
-            with: UIImage(named: "logout button") ?? UIImage(systemName: "arrow.backward")!,
+            with: image ?? UIImage(),
             target: self,
             action: #selector(didTapLogoutButton)
         )
-        logoutButton.contentMode = .scaleToFill
+        logoutButton.contentMode = .scaleAspectFit
         logoutButton.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(logoutButton)
     }

@@ -50,7 +50,8 @@ final class SplashViewController: UIViewController {
     // MARK: - ImageView Setup
     
     private func setupImageView() {
-        logoImage = UIImage(named: "Logo") ?? UIImage(systemName: "questionmark.circle")!
+        let defaultlogoImage = UIImage(systemName: "questionmark.circle")
+        let logoImage = UIImage(named: "Logo") ?? defaultlogoImage
         imageView = UIImageView(image: logoImage)
         imageView.contentMode = .scaleAspectFit
         imageView.translatesAutoresizingMaskIntoConstraints = false

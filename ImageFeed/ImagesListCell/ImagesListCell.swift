@@ -15,13 +15,13 @@ final class ImagesListCell: UITableViewCell {
     
     // MARK: - @IBOutlet
     
-    @IBOutlet var likeButton: UIButton!
+    @IBOutlet weak var likeButton: UIButton!
     
-    @IBOutlet var dateLabel: UILabel!
+    @IBOutlet weak var dateLabel: UILabel!
     
-    @IBOutlet var cellImage: UIImageView!
+    @IBOutlet weak var cellImage: UIImageView!
     
-    @IBOutlet var gradientView: UIView!
+    @IBOutlet weak var gradientView: UIView!
     
     // MARK: - Private Properties
     
