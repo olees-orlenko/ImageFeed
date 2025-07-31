@@ -78,6 +78,7 @@
                                                 </imageView>
                                                 <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="qOq-Qy-chF">
                                                     <rect key="frame" x="333" y="4" width="44" height="44"/>
+                                                    <accessibility key="accessibilityConfiguration" label="Like"/>
                                                     <constraints>
                                                         <constraint firstAttribute="height" constant="44" id="Hdd-k3-Dfi"/>
                                                         <constraint firstAttribute="width" constant="44" id="wLB-Pf-D4J"/>
@@ -188,6 +189,7 @@
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="iTH-nW-5ex">
                                 <rect key="frame" x="8" y="67" width="48" height="48"/>
+                                <accessibility key="accessibilityConfiguration" label="BackButton"/>
                                 <constraints>
                                     <constraint firstAttribute="width" constant="48" id="ZeT-FH-iUr"/>
                                     <constraint firstAttribute="height" constant="48" id="r6v-di-Xbf"/>
