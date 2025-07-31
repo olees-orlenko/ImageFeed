@@ -77,15 +77,19 @@ final class AuthViewController: UIViewController {
     
     // MARK: - Navigation
     
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?){
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == showWebViewSegueIdentifier {
             guard
-                let webViewController = segue.destination as? WebViewViewController
+                let webViewViewController = segue.destination as? WebViewViewController
             else {
                 assertionFailure("Failed to prepare for \(showWebViewSegueIdentifier)")
                 return
             }
-            webViewController.delegate = self
+            let authHelper = AuthHelper()
+            let webViewPresenter = WebViewPresenter(authHelper: authHelper)
+            webViewViewController.presenter = webViewPresenter
+            webViewPresenter.view = webViewViewController
+            webViewViewController.delegate = self
         } else {
             super.prepare(for: segue, sender: sender)
         }
@@ -95,7 +99,15 @@ final class AuthViewController: UIViewController {
     
     @objc private func didTapLoginButton() {
         guard !isFetchingToken else { return }
-        let webViewViewController = WebViewViewController()
+        let storyboard = UIStoryboard(name: "Main", bundle: nil)
+        guard let webViewViewController = storyboard.instantiateViewController(withIdentifier: "WebViewViewController") as? WebViewViewController else {
+            assertionFailure("Не удалось создать WebViewViewController из Storyboard")
+            return
+        }
+        let authHelper = AuthHelper()
+        let webViewPresenter = WebViewPresenter(authHelper: authHelper)
+        webViewViewController.presenter = webViewPresenter
+        webViewPresenter.view = webViewViewController
         webViewViewController.delegate = self
         webViewViewController.modalPresentationStyle = .fullScreen
         present(webViewViewController, animated: true, completion: nil)
