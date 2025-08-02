@@ -74,7 +74,7 @@ final class ProfileViewController: UIViewController, ProfileViewProtocol {
     // MARK: - LogoutButton Setup
     
     private func setupLogoutButton() {
-        logoutButton.accessibilityIdentifier = "logoutButton"
+        logoutButton.accessibilityLabel = "logout button"
         let defaultImage = UIImage(systemName: "arrow.backward")
         let image = UIImage(named: "logout button") ?? defaultImage
         logoutButton = UIButton.systemButton(
