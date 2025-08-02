@@ -1,7 +1,11 @@
 import UIKit
 import Kingfisher
 
-final class ProfileViewController: UIViewController {
+final class ProfileViewController: UIViewController, ProfileViewProtocol {
+    
+    // MARK: - Properties
+    
+    var presenter: ProfileViewPresenterProtocol?
     
     // MARK: - Private UI Properties
     
@@ -15,13 +19,12 @@ final class ProfileViewController: UIViewController {
     // MARK: - Private Services
     
     private var profileImageServiceObserver: NSObjectProtocol?
-    private let profileService = ProfileService.shared
-    private let profileImageService = ProfileImageService.shared
     
     // MARK: - Lifecycle
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        presenter?.viewDidLoad()
         setupView()
         setupImageView()
         setupLogoutButton()
@@ -36,10 +39,15 @@ final class ProfileViewController: UIViewController {
                 queue: .main
             ) { [weak self] _ in
                 guard let self = self else { return }
-                self.updateAvatar()
+                self.presenter?.updateAvatar()
             }
-        updateProfile()
-        updateAvatar()
+    }
+    
+    // MARK: - Configuration
+    
+    func configure(_ presenter: ProfileViewPresenterProtocol) {
+        self.presenter = presenter
+        self.presenter?.view = self
     }
     
     // MARK: - View Setup
@@ -66,6 +74,7 @@ final class ProfileViewController: UIViewController {
     // MARK: - LogoutButton Setup
     
     private func setupLogoutButton() {
+        logoutButton.accessibilityLabel = "logout button"
         let defaultImage = UIImage(systemName: "arrow.backward")
         let image = UIImage(named: "logout button") ?? defaultImage
         logoutButton = UIButton.systemButton(
@@ -81,6 +90,7 @@ final class ProfileViewController: UIViewController {
     // MARK: - NameLabel Setup
     
     private func setupNameLabel() {
+        nameLabel.accessibilityLabel = "nameLabel"
         nameLabel.text = "Екатерина Новикова"
         nameLabel.textColor = UIColor(resource: .ypWhite)
         nameLabel.font = UIFont.systemFont(ofSize: 23, weight: .bold)
@@ -92,6 +102,7 @@ final class ProfileViewController: UIViewController {
     // MARK: - NicknameLabel Setup
     
     private func setupNicknameLabel() {
+        nicknameLabel.accessibilityLabel = "nicknameLabel"
         nicknameLabel.text = "@ekaterina_nov"
         nicknameLabel.textColor = UIColor(resource: .ypGray)
         nicknameLabel.font = UIFont.systemFont(ofSize: 13, weight: .regular)
@@ -114,8 +125,8 @@ final class ProfileViewController: UIViewController {
     // MARK: - Actions
     
     @objc
-    private func didTapLogoutButton(){
-        showLogoutAlert()
+    private func didTapLogoutButton() {
+        presenter?.didTapLogoutButton()
     }
     
     // MARK: - Layout Constraints
@@ -142,34 +153,33 @@ final class ProfileViewController: UIViewController {
         ])
     }
     
-    // MARK: - Private Methods
+    // MARK: - ProfileViewProtocol Methods
     
-    private func updateProfile() {
-        guard let profile = profileService.profile else {
-            print("Профиль не загружен")
-            return
+    func updateProfile(profile: Profile) {
+        DispatchQueue.main.async {
+            self.nameLabel.text = profile.name
+            self.nicknameLabel.text = profile.loginName
+            self.textLabel.text = profile.bio
         }
-        nameLabel.text = profile.name
-        nicknameLabel.text = profile.loginName
-        textLabel.text = profile.bio
     }
     
-    private func updateAvatar() {
-        guard let urlString = profileImageService.avatarURL,
-              let url = URL(string: urlString) else {
-            imageView.image = UIImage(named: "Photo")
-            return
+    func updateAvatar(url: URL?) {
+        DispatchQueue.main.async {
+            guard let url = url else {
+                self.imageView.image = UIImage(named: "Photo")
+                return
+            }
+            let processor = RoundCornerImageProcessor(cornerRadius: 35)
+            self.imageView.kf.indicatorType = .activity
+            self.imageView.kf.setImage(
+                with: url,
+                placeholder: UIImage(named: "Photo"),
+                options: [.processor(processor)]
+            )
         }
-        let processor = RoundCornerImageProcessor(cornerRadius: 35)
-        imageView.kf.indicatorType = .activity
-        imageView.kf.setImage(
-            with: url,
-            placeholder: UIImage(named: "Photo"),
-            options: [.processor(processor)]
-        )
     }
     
-    private func showLogoutAlert() {
+    func showLogoutAlert() {
         let alert = UIAlertController(
             title: "Пока, пока!",
             message: "Уверены, что хотите выйти?",
