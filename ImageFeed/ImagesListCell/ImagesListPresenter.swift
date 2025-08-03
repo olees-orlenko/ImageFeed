@@ -41,7 +41,6 @@ final class ImagesListPresenter: ImagesListPresenterProtocol {
     
     func didTapLike(at indexPath: IndexPath) {
         let photo = photos[indexPath.row]
-        UIBlockingProgressHUD.show()
         imagesListService.changeLike(photoId: photo.id, isLike: !photo.isLiked) { [weak self] result in
             DispatchQueue.main.async {
                 guard let self = self else {
@@ -51,9 +50,7 @@ final class ImagesListPresenter: ImagesListPresenterProtocol {
                 switch result {
                 case .success:
                     self.view?.reloadRows(at: [indexPath])
-                    UIBlockingProgressHUD.dismiss()
                 case .failure(let error):
-                    UIBlockingProgressHUD.dismiss()
                     print("Ошибка: \(error)")
                     let alert = UIAlertController(
                         title: "Что-то пошло не так(",
@@ -63,6 +60,7 @@ final class ImagesListPresenter: ImagesListPresenterProtocol {
                     alert.addAction(UIAlertAction(title: "Ок", style: .default, handler: nil))
                     self.view?.present(alert, animated: true, completion: nil)
                 }
+                self.view?.hideLoadingIndicator()
             }
         }
     }

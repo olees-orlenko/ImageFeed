@@ -7,4 +7,5 @@ protocol ImagesListViewProtocol: AnyObject {
     func updateTableViewAnimated()
     func reloadRows(at indexPaths: [IndexPath])
     func present(_ viewControllerToPresent: UIViewController, animated flag: Bool, completion: (() -> Void)?)
+    func hideLoadingIndicator()
 }

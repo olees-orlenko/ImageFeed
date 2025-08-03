@@ -67,6 +67,10 @@ final class ImagesListViewController: UIViewController, ImagesListViewProtocol {
         tableView.reloadRows(at: indexPaths, with: .automatic)
     }
     
+    func hideLoadingIndicator() {
+        UIBlockingProgressHUD.dismiss()
+    }
+    
     func configure(presenter: ImagesListPresenterProtocol) {
         self.presenter = presenter
         self.presenter?.view = self
@@ -168,6 +172,7 @@ extension ImagesListViewController: UITableViewDelegate {
 extension ImagesListViewController: ImagesListCellDelegate {
     func imageListCellDidTapLike(_ cell: ImagesListCell) {
         guard let indexPath = tableView.indexPath(for: cell) else { return }
+        UIBlockingProgressHUD.show()
         presenter?.didTapLike(at: indexPath)
     }
 }
